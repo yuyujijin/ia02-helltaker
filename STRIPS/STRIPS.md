@@ -22,7 +22,7 @@
 - Les rochers peuvent être poussés (cela consomme une action)
 - Les pièges peuvent être dans deux états : **on** et **off**. Chaque action inverse l'état de tous les pièges. Marcher sur un piège **on** coûte un nombre de coup (en plus du déplacement).
 - Les clés peuvent êtres récupérées
-- Les locks peuvent êtres ouverts (cela consomme une action)
+- Les locks peuvent êtres ouverts si le nombre de clé est > 0 (cela consomme une action et une clé)
 
 ## 1. Prédicats
 
@@ -30,12 +30,13 @@
 
 Les fluents sont tous les prédicats dont l'état est ammené à **changer**
 - `hit(n) # Nombre de coups`
+- `nKey(n) # Nombre de clés (si plusieurs?)`
 - `player(x,y) # Coordoonée du joueur`
 - `monster(x,y) # Coordoonée d'un monstre`
 - `rock(x,y) # Coordoonées d'un rocher`
-- `trapActivated(p) # Etat des pièges`
 - `key(x,y) # Position d'une clé`
 - `lock(x,y) # Position d'un lock`
+- `trapActivated(p) # Etat des pièges`
 
 ### 1.2 Non fluents
 
@@ -43,6 +44,7 @@ Les fluents sont tous les prédicats dont l'état est ammené à **changer**
 - `case(x,y) # Coordonnées d'une case (nécessaire?)`
 - `goal(x,y) # Coordoonée de la sortie`
 - `trap(x,y) # Position d'un piège`
+- `plus1(x,y) # x = y + 1`
 
 
 ## 2. Init
@@ -54,8 +56,40 @@ Les fluents sont tous les prédicats dont l'état est ammené à **changer**
 - `but = player(x,y) and goal(x,y)`
 
 ## 4. Actions
+
+- Deplacements
 ```
-Action(hit(),
+Action(moveUp(),
+PRECOND : ,
+EFFECT : )
+```
+- Pousser ennemi
+```
+Action(pushEnnemy(),
+PRECOND : ,
+EFFECT : )
+```
+- *Tuer* ennemi
+```
+Action(killEnnemy(),
+PRECOND : ,
+EFFECT : )
+```
+- Pousser rocher
+```
+Action(pushRock(),
+PRECOND : ,
+EFFECT : )
+```
+- Récuperer une clé
+```
+Action(takeKey(),
+PRECOND : ,
+EFFECT : )
+```
+- Débloquer un lock
+```
+Action(unlock(),
 PRECOND : ,
 EFFECT : )
 ```
