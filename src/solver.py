@@ -1,5 +1,6 @@
 import sys
 import time
+from turtle import st
 sys.path.append('./python')
 import helltaker_utils
 from typing import List
@@ -50,7 +51,7 @@ def create_starting_state(grid : List[str], max_steps: int, n : int, m : int):
 # Create non-fluents
 def create_map_rules(grid : List[str], n : int, m : int):
     # Initiate dictionnary
-    map_rules = {'goals': set(), 'walls' : set(), 'spikes' : set()}
+    map_rules = {'goals': set(), 'walls' : set(), 'spikes' : set(), 'n' : n, 'm' : m}
 
     # Fill the dictionnary
     for i in range(m):
@@ -96,7 +97,7 @@ def kill_mobs_on_spike(state, map_rules):
     newMobs = newState.mobs
 
     for mob in fixedMobs:
-        if (mob in state.unsafeTraps) or (mob in map_rules['spikes']):
+        if (mob in newState.unsafeTraps) or (mob in map_rules['spikes']):
             newMobs = remove_in_frozenset(newState.mobs, mob)
 
     newState = newState._replace(mobs = newMobs)
@@ -110,9 +111,9 @@ def action_cost(state, map_rules):
     newState = newState._replace(safeTraps = newState.unsafeTraps, 
         unsafeTraps = newState.safeTraps)
 
-    newState = kill_mobs_on_spike(state, map_rules)
+    newState = kill_mobs_on_spike(newState, map_rules)
             
-    if (x0 in state.unsafeTraps) or (x0 in map_rules['spikes']):
+    if (x0 in newState.unsafeTraps) or (x0 in map_rules['spikes']):
         newState = newState._replace(max_steps = newState.max_steps - 2)
     else :
         newState = newState._replace(max_steps = newState.max_steps - 1)
@@ -120,9 +121,26 @@ def action_cost(state, map_rules):
 
 def print_state(state, map_rules):
     print("state : ")
-    for b in state.blocks:
-        print(b)
-    print()
+    print({x for x in state.blocks})
+    for i in range(map_rules['m']):
+        for j in range(map_rules['n']):
+            if (i,j) in state.blocks:
+                print('B', end = '')
+            elif (i,j) in state.locks:
+                print('L', end = '')
+            elif (i,j) in map_rules['walls']:
+                print('#', end = '')
+            elif (i,j) in state.mobs:
+                print('M', end = '')
+            elif (i,j) == state.me:
+                print('H', end ='')
+            elif (i,j) in state.safeTraps:
+                print('t', end = '')
+            elif (i,j) in state.unsafeTraps:
+                print('T', end = '')
+            else :
+                print('.', end = '')
+        print()
 
 # Execute an action and returns a new state
 def do(action, state, map_rules):
@@ -272,7 +290,7 @@ def do(action, state, map_rules):
     elif action.verb == 'killMob':
         # Get the tile were the mob would be pushed
         x2 = one_step(x1, action.direction)
-        if x1 in mobs and not (free(x2, map_rules) and (mobs | blocks)):
+        if x1 in mobs and (not free(x2, map_rules) or x2 in blocks):
             # We move ourselve and decrement the number of max_steps by one
             newState = copy_state(state)
             # Turn cost
