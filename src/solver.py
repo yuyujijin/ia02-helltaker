@@ -14,9 +14,9 @@ State = namedtuple('state',('me','max_steps','nbKeys', 'blocks',
 actionNames = ['move', 'moveSpike', 'moveTrap', 
 'moveKey', 'unlock', 'pushBlock', 'pushMob', 'killMob']
 
-actions = {d : [] for d in 'udrl'}
+actions = {d : [] for d in 'hbgd'}
 
-for d in 'udrl':
+for d in 'hbgd':
     for a in actionNames:
         actions[d].append(Action(a,d))
 
@@ -31,18 +31,19 @@ def create_starting_state(grid : List[str], max_steps: int, n : int, m : int):
             e = grid[i][j]
             if e in ['H']:
                 me = (i,j)
-            elif e in ['B','O','P','Q']:
+            if e in ['B','O','P','Q']:
                 blocks.add((i,j))
-            elif e in ['K']:
+            if e in ['K']:
                 keys.add((i,j))
-            elif e in ['L']:
+            if e in ['L']:
                 locks.add((i,j))
-            elif e in ['M']:
+            if e in ['M']:
                 mobs.add((i,j))
-            elif e in ['T','P']:
+            if e in ['T','P']:
                 safeTraps.add((i,j))
-            elif e in ['U','Q']:
+            if e in ['U','Q']:
                 unsafeTraps.add((i,j))
+
     # Returns starting state
     return State(me = me, max_steps = max_steps, nbKeys = 0, blocks = frozenset(blocks), 
     keys = frozenset(keys), locks = frozenset(locks),mobs = frozenset(mobs), 
@@ -69,7 +70,7 @@ def create_map_rules(grid : List[str], n : int, m : int):
 # Return the new position after taking one step
 def one_step(position, direction):
     i, j = position
-    return {'r' : (i,j+1), 'l' : (i,j-1), 'u' : (i-1,j), 'd' : (i+1,j)}[direction]
+    return {'d' : (i,j+1), 'g' : (i,j-1), 'h' : (i-1,j), 'b' : (i+1,j)}[direction]
 
 # Check if tile is accessible
 def free(position, map_rules) :
@@ -92,7 +93,7 @@ def remove_in_frozenset(fset,elt):
 def kill_mobs_on_spike(state, map_rules):
     newState = copy_state(state)
 
-    fixedMobs = {x for x in state.mobs}
+    fixedMobs = {x for x in newState.mobs}
 
     newMobs = newState.mobs
 
@@ -120,7 +121,6 @@ def action_cost(state, map_rules):
     return newState
 
 def print_state(state, map_rules):
-    print("state : ")
     print({x for x in state.blocks})
     for i in range(map_rules['m']):
         for j in range(map_rules['n']):
@@ -210,7 +210,7 @@ def do(action, state, map_rules):
     # Move on a key
     elif action.verb == 'moveKey':
         # if tile is accessible and has key on it
-        if (x1 in keys):
+        if (x1 in keys) and not (x1 in blocks):
             # We move ourselve and decrement the number of max_steps by one
             newState = copy_state(state)
             newState = newState._replace(me = x1)
@@ -252,7 +252,7 @@ def do(action, state, map_rules):
         # Get the tile were the block would be pushed
         x2 = one_step(x1, action.direction)
         # if there is a block on 
-        if x1 in blocks and free(x2, map_rules) and not (x2 in keys | locks | mobs | blocks):
+        if x1 in blocks and free(x2, map_rules) and not (x2 in locks | mobs | blocks):
             # We move ourselve and decrement the number of max_steps by one
             newState = copy_state(state)
             # Turn cost
@@ -371,12 +371,15 @@ if __name__ == "__main__":
     map_rules = create_map_rules(grid['grid'], grid['n'], grid['m'])
     s0 = create_starting_state(grid['grid'], grid['max_steps'], grid['n'], grid['m'])
 
-    print("GOAL IS : ",map_rules['goals'])
+    # print("GOAL IS : ",map_rules['goals'])
 
     s_end, save = search_with_parent(s0, goal_factory(map_rules), succ_factory(map_rules), remove_head, insert_tail, debug = False)
     
     if s_end :
         plan = ''.join([a for s,a in dict2path(s_end,save) if a])
-        print("SAT :", plan)
+        if helltaker_utils.check_plan(plan):
+            print("Solution found with plan : ", plan)
+        else:
+            print("Plan is not valid...")
     else :
-        print("UNSAT : NO PLAN FOUND")
+        print("No solution found...")
