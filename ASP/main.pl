@@ -38,32 +38,38 @@ positionRelative(left,pos(X1,Y),pos(X2,Y)) :-
 
 do(act(move,D),
     state(me(X1,Y1), hit(H1), monster(M), rock(R), safe(S), unsafe(U), key(K), kown(KO), lock(L)),
-    state(me(X2,Y2), hit(H2), monster(M), rock(R), safe(S), unsafe(U), key(K), kown(KO), lock(L))) :-
+    state(me(X2,Y2), hit(H2), monster(M), rock(R), safe(U), unsafe(S), key(K), kown(KO), lock(L))) :-
         positionRelative(D,pos(X1,Y1), pos(X2,Y2)),
         notIn(pos(X2,Y2),R),
-        notIn(pos(X2,Y2),T),
+        notIn(pos(X2,Y2),U),
+        notIn(pos(X2,Y2),S),
         notIn(pos(X2,Y2),K),
+        notIn(pos(X2,Y2),M),
         notIn(pos(X2,Y2),L),
         H2 is H1 - 1.
 
 do(act(collect,D),
     state(me(X1,Y1), hit(H1), monster(M), rock(R), safe(S), unsafe(U), key(K1), kown(KO1), lock(L)),
-    state(me(X2,Y2), hit(H2), monster(M), rock(R), safe(S), unsafe(U), key(K2), kown(KO2), lock(L))) :-
+    state(me(X2,Y2), hit(H2), monster(M), rock(R), safe(U), unsafe(S), key(K2), kown(KO2), lock(L))) :-
         positionRelative(D,pos(X1,Y1), pos(X2,Y2)),
         enleve(pos(X2,Y2),K1,K2),
         notIn(pos(X2,Y2),R),
-        notIn(pos(X2,Y2),T),
+        notIn(pos(X2,Y2),U),
+        notIn(pos(X2,Y2),S),
+        notIn(pos(X2,Y2),M),
         notIn(pos(X2,Y2),L),
         KO2 is KO1 + 1,
         H2 is H1 - 1.
 
 do(act(pushRock,D),
     state(me(X1,Y1), hit(H), monster(M), rock(R1), safe(S), unsafe(U), key(K), lock(L)),
-    state(me(X1,Y1), hit(H), monster(M), rock([(X3,Y3)|R2]), safe(S), unsafe(U), key(K), lock(L))) :-
+    state(me(X1,Y1), hit(H), monster(M), rock([(X3,Y3)|R2]), safe(U), unsafe(S), key(K), lock(L))) :-
         positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
         enleve(pos(X2,Y2),R1,R2),
         positionRelative(D,pos(X2,Y2),pos(X3,Y3)),
         notIn(pos(X3,Y3),K),
+        notIn(pos(X2,Y2),U),
+        notIn(pos(X2,Y2),S),
         notIn(pos(X3,Y3),L),
         notIn(pos(X3,Y2),M),
         notIn(pos(X3,Y3),R1),
@@ -72,13 +78,14 @@ do(act(pushRock,D),
 % Juste pousser le monstre
 do(act(pushMonster,D),
     state(me(X1,Y1), hit(H), monster(M1), rock(R), safe(S), unsafe(U), key(K), lock(L)),
-    state(me(X1,Y1), hit(H), monster([(X3,Y3)|M2]), rock(R), safe(S), unsafe(U), key(K), lock(L))) :-
+    state(me(X1,Y1), hit(H), monster([(X3,Y3)|M2]), rock(R), safe(U), unsafe(S), key(K), lock(L))) :-
         positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
         enleve(pos(X2,Y2),M1,M2),
         positionRelative(D,pos(X2,Y2),pos(X3,Y3)),
         notIn(pos(X2,Y2),L),
         notIn(pos(X3,Y3),M1),
-        notIn(pos(X3,Y3),T),
+        notIn(pos(X2,Y2),U),
+        notIn(pos(X2,Y2),S),
         notIn(pos(X3,Y3),K),
         notIn(pos(X3,Y3),L),
         notIn(pos(X3,Y3),R),
@@ -86,8 +93,8 @@ do(act(pushMonster,D),
 
 %Pousser le monstre sur un mur = le tuer
 do(act(pushMonster,D),
-    state(me(X1,Y1), hit(H), monster(M1), rock(R), safe(S), unsafe(U),(T), key(K), lock(L)),
-    state(me(X1,Y1), hit(H), monster(M2), rock(R), trapActivated(T), key(K), lock(L))) :-
+    state(me(X1,Y1), hit(H), monster(M1), rock(R), safe(S), unsafe(U), key(K), lock(L)),
+    state(me(X1,Y1), hit(H), monster(M2), rock(R), safe(U), unsafe(S), key(K), lock(L))) :-
         positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
         enleve(pos(X2,Y2),R1,R2),
         positionRelative(D,pos(X2,Y2),pos(X3,Y3)),
@@ -96,11 +103,12 @@ do(act(pushMonster,D),
         H2 is H1 - 1.
 
 do(act(moveSpike,D),
-    state(me(X1,Y1), hit(H1), monster(M), rock(R), trapActivated(T), key(K), kown(KO), lock(L)),
-    state(me(X2,Y2), hit(H2), monster(M), rock(R), trapActivated(T), key(K), kown(KO), lock(L))) :-
+    state(me(X1,Y1), hit(H1), monster(M), rock(R), safe(S), unsafe(U), key(K), kown(KO), lock(L)),
+    state(me(X2,Y2), hit(H2), monster(M), rock(R), safe(U), unsafe(S), key(K), kown(KO), lock(L))) :-
         positionRelative(D,pos(X1,Y1), pos(X2,Y2)),
         spike(X2,Y2),
-        notIn(pos(X2,Y2),T),
+        notIn(pos(X2,Y2),U),
+        notIn(pos(X2,Y2),S),
         notIn(pos(X2,Y2),K),
         notIn(pos(X2,Y2),L),
         notIn(pos(X2,Y2),M),
@@ -108,8 +116,19 @@ do(act(moveSpike,D),
         H2 is H1 - 2.
 
 do(act(moveSafe,D),
-    state(me(X1,Y1), hit(H1), monster(M), rock(R), trapActivated(T), key(K), kown(KO), lock(L)),
-    state(me(X2,Y2), hit(H2), monster(M), rock(R), trapActivated(T), key(K), kown(KO), lock(L))) :-
+    state(me(X1,Y1), hit(H1), monster(M), rock(R), safe(S), unsafe(U), key(K), kown(KO), lock(L)),
+    state(me(X2,Y2), hit(H2), monster(M), rock(R), safe(U), unsafe(S), key(K), kown(KO), lock(L))) :-
+        positionRelative(D,pos(X1,Y1), pos(X2,Y2)),
+        notIn(pos(X2,Y2),R),
+        notIn(pos(X2,Y2),U),
+        notIn(pos(X2,Y2),S),
+        notIn(pos(X2,Y2),K),
+        notIn(pos(X2,Y2),L),
+        H2 is H1 - 2.
+
+do(act(moveUnsafe,D),
+    state(me(X1,Y1), hit(H1), monster(M), rock(R), safe(S), unsafe(U), key(K), kown(KO), lock(L)),
+    state(me(X2,Y2), hit(H2), monster(M), rock(R), safe(U), unsafe(S), key(K), kown(KO), lock(L))) :-
         positionRelative(D,pos(X1,Y1), pos(X2,Y2)),
         notIn(pos(X2,Y2),R),
         notIn(pos(X2,Y2),T),
