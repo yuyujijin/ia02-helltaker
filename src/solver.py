@@ -1,27 +1,15 @@
+#!/usr/bin/python3
+
 import sys
 import time
 from turtle import st
 sys.path.append('./python')
 import helltaker_utils
-from typing import List
-
-from collections import namedtuple
-
-Action = namedtuple('action', ('verb', 'direction'))
-State = namedtuple('state',('me','max_steps','nbKeys', 'blocks', 
-'keys', 'locks', 'mobs', 'safeTraps', 'unsafeTraps'))
-
-actionNames = ['move', 'moveSpike', 'moveTrap', 
-'moveKey', 'unlock', 'pushBlock', 'pushMob', 'killMob']
-
-actions = {d : [] for d in 'hbgd'}
-
-for d in 'hbgd':
-    for a in actionNames:
-        actions[d].append(Action(a,d))
+from typing import Callable, Dict, List, Set, Tuple
+from utils import Action, State, actions
 
 # Create starting state
-def create_starting_state(grid : List[str], max_steps: int, n : int, m : int):
+def create_starting_state(grid : List[str], max_steps: int, n : int, m : int) -> State:
     # Initiate sets
     me = None; blocks = set(); keys = set(); locks = set();
     mobs = set(); safeTraps = set(); unsafeTraps = set();
@@ -50,9 +38,9 @@ def create_starting_state(grid : List[str], max_steps: int, n : int, m : int):
     safeTraps = frozenset(safeTraps), unsafeTraps = frozenset(unsafeTraps))
 
 # Create non-fluents
-def create_map_rules(grid : List[str], n : int, m : int):
+def create_map_rules(grid : List[str], n : int, m : int) -> Dict[str, set]:
     # Initiate dictionnary
-    map_rules = {'goals': set(), 'walls' : set(), 'spikes' : set(), 'n' : n, 'm' : m}
+    map_rules = {'goals': set(), 'walls' : set(), 'spikes' : set()}
 
     # Fill the dictionnary
     for i in range(m):
@@ -68,29 +56,31 @@ def create_map_rules(grid : List[str], n : int, m : int):
     return map_rules
 
 # Return the new position after taking one step
-def one_step(position, direction):
+def one_step(position : Tuple[int,int], direction : str) -> Tuple[int,int]:
     i, j = position
     return {'d' : (i,j+1), 'g' : (i,j-1), 'h' : (i-1,j), 'b' : (i+1,j)}[direction]
 
 # Check if tile is accessible
-def free(position, map_rules) :
+def free(position : Tuple[int,int], map_rules : Dict[str, set]) -> bool:
     return not(position in map_rules['walls'] or position in map_rules['goals'])
 
-def copy_state(state):
+# Copy a state and returns a copy of a it
+def copy_state(state : State) -> State:
     return State(**{k : v for k,v in state._asdict().items()})
 
-def add_in_frozenset(fset, elt):
+# Make a copy of a frozen set and adds an element to it
+def add_in_frozenset(fset : frozenset, elt : Tuple[int, int]) -> frozenset:
     s = {x for x in fset}
     s.add(elt)
     return frozenset(s)
 
-def remove_in_frozenset(fset,elt):
+def remove_in_frozenset(fset : frozenset,elt : Tuple[int, int]) -> frozenset:
     s = {x for x in fset}
     s.remove(elt)
     return frozenset(s)
 
-# Removes every move that are on spikes and active traps
-def kill_mobs_on_spike(state, map_rules):
+# Removes every move that are on spikes and active traps and returns a new state
+def kill_mobs_on_spike(state : State, map_rules : Dict[str, set]) -> State:
     newState = copy_state(state)
 
     fixedMobs = {x for x in newState.mobs}
@@ -104,7 +94,8 @@ def kill_mobs_on_spike(state, map_rules):
     newState = newState._replace(mobs = newMobs)
     return newState
 
-def action_cost(state, map_rules):
+# Swap the safe and unsafe traps and remove steps depending on the state of the game
+def action_cost(state : State, map_rules : Dict[str,set]) -> State:
     x0 = state.me
     newState = copy_state(state)
 
@@ -120,30 +111,8 @@ def action_cost(state, map_rules):
         newState = newState._replace(max_steps = newState.max_steps - 1)
     return newState
 
-def print_state(state, map_rules):
-    print({x for x in state.blocks})
-    for i in range(map_rules['m']):
-        for j in range(map_rules['n']):
-            if (i,j) in state.blocks:
-                print('B', end = '')
-            elif (i,j) in state.locks:
-                print('L', end = '')
-            elif (i,j) in map_rules['walls']:
-                print('#', end = '')
-            elif (i,j) in state.mobs:
-                print('M', end = '')
-            elif (i,j) == state.me:
-                print('H', end ='')
-            elif (i,j) in state.safeTraps:
-                print('t', end = '')
-            elif (i,j) in state.unsafeTraps:
-                print('T', end = '')
-            else :
-                print('.', end = '')
-        print()
-
 # Execute an action and returns a new state
-def do(action, state, map_rules):
+def do(action : Action, state : State, map_rules : Dict[str,set]) -> State:
     # We retrieve the actual position
     x0 = state.me
 
@@ -307,39 +276,15 @@ def do(action, state, map_rules):
     # We did nothing
     return None
 
-# Insert at the end of the list
-def insert_tail(s, l):
-    l.append(s)
-    return l
-
-# Remove the head of the list
-def remove_head(l):
-    return l.pop(0), l
-
-def search_with_parent(s0, goals, succ, 
-                       remove, insert, debug=True) :
-    l = [s0]
-    save = {s0: None}
-    s = s0
-    while l:
-        if debug:
-            print("l =", l)
-        s, l = remove(l)
-        for s2,a in succ(s).items():
-            if not s2 in save:
-                save[s2] = (s,a)
-                if goals(s2):
-                    return s2, save
-                insert(s2, l)
-    return None, save
-
-def goal_factory(map_rules) :
-    def goals(state) :
+# Factory for goals
+def goal_factory(map_rules : Dict[str, set]) -> Callable[[State], bool]:
+    def goals(state : State) :
         offsets = [(0,1), (1,0), (0,-1), (-1,0)]
         return any([(state.me[0] + x[0], state.me[1] + x[1]) in map_rules['goals'] for x in offsets])
     return goals
 
-def succ_factory(map_rules) :
+# Factory for successor
+def succ_factory(map_rules : Dict[str, set]) -> Set[Tuple[State, Action]]:
     def succ(state) :
         l = []
         for x in actions.values():
@@ -348,7 +293,8 @@ def succ_factory(map_rules) :
         return {x : a for x,a in l if x}
     return succ
 
-def dict2path(s, d):
+# Returns a list of action in string form
+def dict2path(s : State, d : Dict[State, Tuple[State, Action]]) -> List[str]:
     l = [(s,None)]
     while not d[s] is None:
         parent, a = d[s]
@@ -358,28 +304,41 @@ def dict2path(s, d):
     l.reverse()
     return l
 
-if __name__ == "__main__":
-    # Check if filename is given
-    if len(sys.argv) < 2:
-        print("Préciser un fichier.", file=sys.stderr)
-        exit()
-    # Retrieve the filename
-    filename = sys.argv[1]
+# BFS Search (Parcours en Largeur)
+from search import search_with_parent, remove_head, insert_tail
+
+# Solves a level
+def solve(filename : str) -> None:
     # Parse the level
     grid = helltaker_utils.grid_from_file(filename)
 
+    # Create the map rules
     map_rules = create_map_rules(grid['grid'], grid['n'], grid['m'])
+    # Create the starting state
     s0 = create_starting_state(grid['grid'], grid['max_steps'], grid['n'], grid['m'])
 
-    # print("GOAL IS : ",map_rules['goals'])
-
+    # BFS Search (Parcours en largeur)
     s_end, save = search_with_parent(s0, goal_factory(map_rules), succ_factory(map_rules), remove_head, insert_tail, debug = False)
     
+    # If solution found
     if s_end :
+        # Create a plan
         plan = ''.join([a for s,a in dict2path(s_end,save) if a])
+        # Check if valid
         if helltaker_utils.check_plan(plan):
-            print("Solution found with plan : ", plan)
+            print("Solution found with plan :", plan)
         else:
             print("Plan is not valid...")
     else :
         print("No solution found...")
+
+if __name__ == "__main__":
+    # Check if filename is given
+    if len(sys.argv) < 2:
+        print(f"Usage : {sys.argv[0]} <filename>", file=sys.stderr)
+        exit()
+    # Retrieve the filename
+    filename = sys.argv[1]
+    # Solve the level
+    solve(filename)
+    
