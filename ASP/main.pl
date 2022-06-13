@@ -76,8 +76,8 @@ do(act(collect,D),
 
 %Pousser un rocher
 do(act(pushRock,D),
-    state(me(X1,Y1), hit(H), monster(M), rock(R1), safe(S), unsafe(U), key(K), lock(L)),
-    state(me(X1,Y1), hit(H), monster(M), rock([(X3,Y3)|R2]), safe(U), unsafe(S), key(K), lock(L))) :-
+    state(me(X1,Y1), hit(H1), monster(M), rock(R1), safe(S), unsafe(U), key(K), lock(L)),
+    state(me(X1,Y1), hit(H2), monster(M), rock([(X3,Y3)|R2]), safe(U), unsafe(S), key(K), lock(L))) :-
         positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
         enleve(pos(X2,Y2),R1,R2),
         positionRelative(D,pos(X2,Y2),pos(X3,Y3)),
@@ -91,8 +91,8 @@ do(act(pushRock,D),
 
 % Juste pousser le monstre
 do(act(pushMonster,D),
-    state(me(X1,Y1), hit(H), monster(M1), rock(R), safe(S), unsafe(U), key(K), lock(L)),
-    state(me(X1,Y1), hit(H), monster([(X3,Y3)|M2]), rock(R), safe(U), unsafe(S), key(K), lock(L))) :-
+    state(me(X1,Y1), hit(H1), monster(M1), rock(R), safe(S), unsafe(U), key(K), lock(L)),
+    state(me(X1,Y1), hit(H2), monster([(X3,Y3)|M2]), rock(R), safe(U), unsafe(S), key(K), lock(L))) :-
         positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
         enleve(pos(X2,Y2),M1,M2),
         positionRelative(D,pos(X2,Y2),pos(X3,Y3)),
@@ -107,10 +107,9 @@ do(act(pushMonster,D),
 
 %Pousser le monstre sur un mur = le tuer
 do(act(pushMonster,D),
-    state(me(X1,Y1), hit(H), monster(M1), rock(R), safe(S), unsafe(U), key(K), lock(L)),
-    state(me(X1,Y1), hit(H), monster(M2), rock(R), safe(U), unsafe(S), key(K), lock(L))) :-
+    state(me(X1,Y1), hit(H1), monster(M1), rock(R), safe(S), unsafe(U), key(K), lock(L)),
+    state(me(X1,Y1), hit(H2), monster(M2), rock(R), safe(U), unsafe(S), key(K), lock(L))) :-
         positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
-        enleve(pos(X2,Y2),R1,R2),
         positionRelative(D,pos(X2,Y2),pos(X3,Y3)),
         wall(X3,Y3),
         enleve(pos(X2,Y2),M1,M2),
@@ -207,3 +206,4 @@ victory(state(me(X,Y), hit(H), monster(_), rock(_), safe(_), unsafe(_), key(_), 
 victory(state(me(X,Y), hit(H), monster(_), rock(_), safe(_), unsafe(_), key(_), kown(_), lock(_))) :- 
     goal(X-1,Y),
     H >= 0. 
+
