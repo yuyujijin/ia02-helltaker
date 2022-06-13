@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import sys
-import time
+import argparse
 from turtle import st
 sys.path.append('./python')
 import helltaker_utils
@@ -304,11 +304,19 @@ def dict2path(s : State, d : Dict[State, Tuple[State, Action]]) -> List[str]:
     l.reverse()
     return l
 
+from search import search_with_parent
 # BFS Search (Parcours en Largeur)
-from search import search_with_parent, remove_head, insert_tail
+from search import remove_head, insert_tail
+# DFS Search (Parcours en Profondeur)
+from search import remove_prof, insert_prof
+
+algorithms = {
+    'BFS' : {'remove' : remove_head, 'insert': insert_tail},
+    'DFS' : {'remove' : remove_prof, 'insert' : insert_prof}
+    }
 
 # Solves a level
-def solve(filename : str) -> None:
+def solve(filename : str, search : str, verbose : bool) -> None:
     # Parse the level
     grid = helltaker_utils.grid_from_file(filename)
 
@@ -316,14 +324,21 @@ def solve(filename : str) -> None:
     map_rules = create_map_rules(grid['grid'], grid['n'], grid['m'])
     # Create the starting state
     s0 = create_starting_state(grid['grid'], grid['max_steps'], grid['n'], grid['m'])
+    
+    # Get the search algorithm
+    if search not in algorithms.keys():
+        raise SystemExit("Error : Search algorithm %s unknown" % (search))
+    
+    # Retrieve the search algorithms
+    remove, insert = algorithms[search]['remove'], algorithms[search]['insert']
 
     # BFS Search (Parcours en largeur)
-    s_end, save = search_with_parent(s0, goal_factory(map_rules), succ_factory(map_rules), remove_head, insert_tail, debug = False)
+    s_end, save = search_with_parent(s0, goal_factory(map_rules), succ_factory(map_rules), remove, insert, debug = verbose)
     
     # If solution found
     if s_end :
         # Create a plan
-        plan = ''.join([a for s,a in dict2path(s_end,save) if a])
+        plan = ''.join([a for _,a in dict2path(s_end,save) if a])
         # Check if valid
         if helltaker_utils.check_plan(plan):
             print("Solution found with plan :", plan)
@@ -332,13 +347,15 @@ def solve(filename : str) -> None:
     else :
         print("No solution found...")
 
+# Used to parse the args
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--filename", help="Level file to be solved", required=True)
+    parser.add_argument("--search", help="Search algorithm to be used (default is BFS)", default = "BFS")
+    parser.add_argument("--verbose", help = "Verbosity", action="store_true")
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    # Check if filename is given
-    if len(sys.argv) < 2:
-        print(f"Usage : {sys.argv[0]} <filename>", file=sys.stderr)
-        exit()
-    # Retrieve the filename
-    filename = sys.argv[1]
-    # Solve the level
-    solve(filename)
-    
+    args = parse_args()
+    solve(args.filename, search = args.search, verbose = args.verbose)
