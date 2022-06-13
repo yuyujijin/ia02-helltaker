@@ -29,6 +29,15 @@ def remove_prof(L : List[State]) -> Tuple[State, List[State]]:
         return(elt, L)
     return (None, [])
 
+# A*
+# Insert
+def insert_astar(elt : State, L : List[State]) -> List[State]:
+    return []
+
+# Remove
+def remove_prof(L : List[State]) -> Tuple[State, List[State]]:
+    return (None, [])
+
 # Search with parent known
 def search_with_parent(s0 : State, 
                        goals : Callable[[State], bool], 
