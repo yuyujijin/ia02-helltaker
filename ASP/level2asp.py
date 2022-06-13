@@ -27,6 +27,9 @@ def level2ASP(file :str):
                 if k == tab[i][j] == 'D':
                     tmp="goal(pos(%s,%s)).\n" %(i,j)
                     f.write(tmp)
+    f.write("state(")   
+        for i in range(var["m"]):
+            for j in range(var["n"]):
                 if k == tab[i][j] == 'H':
                     print("player(",i,",",j,").")
                 if k == tab[i][j] == 'B':
@@ -41,7 +44,6 @@ def level2ASP(file :str):
                     print("safe(",i,",",j,").")                
                 if k == tab[i][j] == 'U':
                     print("unsafe(",i,",",j,").")      
-    
     f.close()
 
 level2ASP("levels\level2.txt")
