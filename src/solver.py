@@ -304,6 +304,10 @@ def dict2path(s : State, d : Dict[State, Tuple[State, Action]]) -> List[str]:
     l.reverse()
     return l
 
+# Returns an arrow from a string
+def letter2arrow(letter : str) -> str:
+    return {'d' : '→', 'g' : '←', 'h' : '↑', 'b' : '↓'}[letter]
+
 from search import search_with_parent
 # BFS Search (Parcours en Largeur)
 from search import remove_head, insert_tail
@@ -316,7 +320,7 @@ algorithms = {
     }
 
 # Solves a level
-def solve(filename : str, search : str, verbose : bool) -> None:
+def solve(filename : str, search : str, verbose : bool, arrow : bool) -> None:
     # Parse the level
     grid = helltaker_utils.grid_from_file(filename)
 
@@ -341,7 +345,12 @@ def solve(filename : str, search : str, verbose : bool) -> None:
         plan = ''.join([a for _,a in dict2path(s_end,save) if a])
         # Check if valid
         if helltaker_utils.check_plan(plan):
-            print("Solution found with plan :", plan)
+            print("Solution found with (valid) plan : ", end = '')
+            # Arrow mode or not
+            if not arrow:
+                print(plan)
+            else:
+                print(' '.join(list(map(letter2arrow, plan))))
         else:
             print("Plan is not valid...")
     else :
@@ -353,9 +362,10 @@ def parse_args():
     parser.add_argument("--filename", help="Level file to be solved", required=True)
     parser.add_argument("--search", help="Search algorithm to be used (default is BFS)", default = "BFS")
     parser.add_argument("--verbose", help = "Verbosity", action="store_true")
+    parser.add_argument("--arrow", help="Select if output is in arrow mode", action="store_true")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    solve(args.filename, search = args.search, verbose = args.verbose)
+    solve(args.filename, search = args.search, verbose = args.verbose, arrow = args.arrow)

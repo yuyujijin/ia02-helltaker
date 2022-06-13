@@ -5,15 +5,15 @@ from typing import List, Tuple, Callable, Dict
 
 # BFS Search (Parcours en largeur)
 # Insert at the end of the list
-def insert_tail(s : State, l : List[State]) -> List[State]:
-    l.append(s)
-    return l
+def insert_tail(s : State, L : List[State]) -> List[State]:
+    L.append(s)
+    return L
 
 # Remove the head of the list
-def remove_head(l : List[State]) -> Tuple[State, List[State]]:
-    if len(l) != 0:
-            elt = l.pop(0)
-            return(elt, l)
+def remove_head(L : List[State]) -> Tuple[State, List[State]]:
+    if len(L) != 0:
+            elt = L.pop(0)
+            return(elt, L)
     return (None, [])
 
 # DFS Search (Parcours en profondeur)
@@ -30,12 +30,15 @@ def remove_prof(L : List[State]) -> Tuple[State, List[State]]:
     return (None, [])
 
 # A*
-# Insert
+# Insert in order of heuristics
 def insert_astar(elt : State, L : List[State]) -> List[State]:
     return []
 
-# Remove
-def remove_prof(L : List[State]) -> Tuple[State, List[State]]:
+# Remove the head of the list
+def remove_astar(L : List[State]) -> Tuple[State, List[State]]:
+    if len(L) != 0:
+            elt = L.pop(0)
+            return(elt, L)
     return (None, [])
 
 # Search with parent known
@@ -48,14 +51,23 @@ def search_with_parent(s0 : State,
     l = [s0]
     save = {s0: None}
     s = s0
+    # While l is not empty
     while l:
+        # Used for printing
         if debug:
             print("l =", l)
+        # Remove the head of the list
         s, l = remove(l)
+        # For every possible successors
         for s2,a in succ(s).items():
+            # If exact same state is not already visited
             if not s2 in save:
+                # Save it
                 save[s2] = (s,a)
+                # If its the goal return
                 if goals(s2):
                     return s2, save
+                # Else insert it in the list and repeat
                 insert(s2, l)
+    # Nothing found
     return None, save

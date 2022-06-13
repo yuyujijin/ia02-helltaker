@@ -7,11 +7,13 @@
 ## 1. Python
 ### 1.1 Execution
 
-Le programme s'éxecute en lançant le fichier `solver.py` via `./solver.py` ou `python3 solver.py`. Il est nécessaire de préciser le fichier de niveau, via l'option `--filename`. Deux autres options optionnelles sont disponibles ; `--search` et `--verbose`. 
+Le programme s'éxecute en lançant le fichier `solver.py` via `./solver.py` ou `python3 solver.py`. Il est nécessaire de préciser le fichier de niveau, via l'option `--filename`. Trois autres options optionnelles sont disponibles ; `--search`, `--verbose` et `--arrow`. 
 
 Les options disponibles pour `--search` sont :
 - `BFS` (Parcours en largeur) **[Défaut]**
 - `DFS` (Parcours en profondeur)
+
+`--arrow` permet de rendre la sortie en "format fleché".
 
 Taper `--help` ou `-h` pour plus d'aide.
 
