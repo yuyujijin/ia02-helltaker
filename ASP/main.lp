@@ -8,6 +8,8 @@
 
 %% clingo -c h=24 -n0 main.lp
 
+%%level 1
+
 step(0..h-1).
 
 
@@ -76,8 +78,6 @@ init(mob(3,5)).
 
 
 
-
-
 fluent(F, 0) :- init(F).
 
 %%% tous les buts doivent être atteints au pas hitmax
@@ -86,114 +86,128 @@ fluent(F, 0) :- init(F).
 %%% générateur d'actions..
 { do(Act, T): action(Act) } = 1 :- step(T).
 
-%%% les actions
-%%  action left
-% préconditions
-:-  do(left, T), 
-    fluent(at(X, Y), T), 
-    fluent(block(X, Y - 1), T).
+% Trouver la direction
+%% Calculer l'endroit où sera situé un objet relativement à une position en fonction d'une direction donnée en param
+positionRelative(up,pos(X,Y1),pos(X,Y2)) :-
+    case(X,Y1),
+    case(X,Y2),
+    Y2 is Y1 + 1.
 
-:-  do(left, T), 
-    fluent(at(X, Y), T), 
-    fluent(mob(X, Y - 1), T).
+positionRelative(down,pos(X,Y1),pos(X,Y2)) :-
+    case(X,Y1),
+    case(X,Y2),
+    Y2 is Y1 - 1.
 
-:-  do(left, T), 
-    fluent(at(X, Y), T), 
-    not case(X, Y -1), not fluent(lock(X,Y-1),T). 
+positionRelative(right,pos(X1,Y),pos(X2,Y)) :-
+    case(X1,Y),
+    case(X2,Y),
+    X2 is X1 + 1.
 
-% effets
-fluent(at(X, Y - 1), T + 1) :-
-    do(left, T),
-    fluent(at(X, Y), T).
+positionRelative(left,pos(X1,Y),pos(X2,Y)) :-
+    case(X1,Y),
+    case(X2,Y),
+    X2 is X1 - 1.
 
+%%% les actions %%%
+
+% ACTION : SE DEPLACER
+% a) préconditions
+
+%% Pas de blocs où on veut aller
+:-  do(D, T),
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T), 
+    fluent(block(X2, Y2), T).
+
+%% Pas de mob où on veut aller
+:-  do(D, T), 
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T), 
+    fluent(mob(X2, Y2), T).
+
+    %% Pas de mob où on veut aller
+:-  do(D, T), 
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T), 
+    fluent(lock(X2, Y2), T).
+
+%% 
+:-  do(D, T),
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T), 
+    not case(X2, Y2).
+
+% b) effets
+%% Update la position du perso
+fluent(at(X2, Y2), T + 1) :-
+    do(D, T),
+    positionRelative(D, pos(X1,Y1),pos(X2,Y2)),    
+    fluent(at(X1, Y1), T).
+
+%% Donne l'attribut "removed" quand le perso a fait une action
 removed(at(X, Y), T) :-
-    do(left, T),
+    do(_, T),
     fluent(at(X, Y), T).
+ 
+% Pushs relatifs
+%% Calculer l'endroit où sera poussé un objet relativement à une position en fonction d'une direction donnée en param
+pushRelative(up,pos(X,Y1),pos(X,Y2)) :-
+    case(X,Y1),
+    case(X,Y2),
+    Y2 is Y1 + 2.
 
-%% action right
-% préconditions
-:-  do(right, T), 
-    fluent(at(X, Y), T),
-    not case(X, Y + 1).
+pushRelative(down,pos(X,Y1),pos(X,Y2)) :-
+    case(X,Y1),
+    case(X,Y2),
+    Y2 is Y1 - 2.
 
-:-  do(right, T), 
-    fluent(at(X, Y), T), 
-    fluent(block(X, Y + 1), T).
+pushRelative(right,pos(X1,Y),pos(X2,Y)) :-
+    case(X1,Y),
+    case(X2,Y),
+    X2 is X1 + 2.
 
-:-  do(right, T), 
-    fluent(at(X, Y), T), 
-    fluent(mob(X, Y + 1), T).
+pushRelative(left,pos(X1,Y),pos(X2,Y)) :-
+    case(X1,Y),
+    case(X2,Y),
+    X2 is X1 - 2.
 
-% effets
-fluent(at(X, Y + 1), T + 1) :- 
-    do(right, T), 
-    fluent(at(X, Y), T).
+%% ACTION : POUSSER BLOCS
+% a) préconditions
 
-removed(at(X, Y), T) :- 
-    do(right, T), 
-    fluent(at(X, Y), T).
+% check s'il y a bien un bloc où on veut pousser
+:-  do(D, T),
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T), 
+    not fluent(block(X2, Y2), T).
 
-%% action up
-% préconditions
-:-  do(up, T), 
-    fluent(at(X, Y), T),
-    not case(X + 1, Y).
-
-:-  do(up, T), 
-    fluent(at(X, Y), T), 
-    fluent(block(X + 1, Y), T).
-
-:-  do(up, T), 
-    fluent(at(X, Y), T), 
-    fluent(mob(X + 1, Y), T).
-
-% effets
-fluent(at(X + 1, Y), T + 1) :- 
-    do(up, T), 
-    fluent(at(X, Y), T).
-
-removed(at(X, Y), T) :- 
-    do(up, T), 
-    fluent(at(X, Y), T).
-
-%% action down
-% préconditions
-:-  do(down, T), 
-    fluent(at(X, Y), T),
-    not case(X - 1, Y).
-
-:-  do(down, T), 
-    fluent(at(X, Y), T), 
-    fluent(block(X - 1, Y), T).
-
-:-  do(down, T), 
-    fluent(at(X, Y), T), 
-    fluent(mob(X - 1, Y), T).
-
-% effets
-fluent(at(X - 1, Y), T + 1) :- 
-    do(down, T), 
-    fluent(at(X, Y), T).
-
-removed(at(X, Y), T) :- 
-    do(down, T), 
-    fluent(at(X, Y), T).    
-
-%% action push_right
-% préconditions
+% check s'il ya bien une case où on veut pousser
 :-  do(push_right, T), 
     fluent(at(X, Y), T), 
-    not fluent(block(X, Y + 1), T).
+    not case(X, Y + 2).
 
 :-  do(push_right, T), 
     fluent(at(X, Y), T), 
-    not case(X, Y + 2), not fluent(spike(X,Y+2),T).
+    not fluent(spike(X,Y+2),T).
 
+% check qu'il n'y a pas de bloc où on veut pousser
 :-  do(push_right, T), 
-    fluent(at(X, Y), T),
-    fluent(block(X, Y + 2), T).
+    pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T),
+    fluent(block(X2, Y2), T).
 
-% effets
+% check qu'il n'y a pas de lock où on veut pousser
+:-  do(push_right, T), 
+    pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T),
+    fluent(lock(X2, Y2), T).
+
+% check s'il n'y a pas de monstre où on veut pousser
+:-  do(push_right, T), 
+    pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T),
+    fluent(lock(X2, Y2), T).
+
+% b) effets
 fluent(at(X, Y + 1), T + 1) :- 
     do(push_right, T),
     fluent(at(X, Y), T).
@@ -210,101 +224,9 @@ removed(at(X, Y), T) :-
     do(push_right, T),
     fluent(at(X, Y), T).
 
-%% action push_left
-% préconditions
-:-  do(push_left, T), 
-    fluent(at(X, Y), T), 
-    not fluent(block(X, Y - 1), T).
 
-:-  do(push_left, T), 
-    fluent(at(X, Y), T), 
-    not case(X, Y - 2).
-
-:-  do(push_left, T), 
-    fluent(at(X, Y), T),
-    fluent(block(X, Y - 2), T).
-
-% effets
-fluent(at(X, Y - 1), T + 1) :- 
-    do(push_left, T),
-    fluent(at(X, Y), T).
-
-fluent(block(X, Y - 2), T + 1) :- 
-    do(push_left, T),
-    fluent(at(X, Y), T).
-
-removed(block(X, Y - 1), T) :- 
-    do(push_left, T),
-    fluent(at(X, Y), T).
-
-removed(at(X, Y), T) :- 
-    do(push_left, T),
-    fluent(at(X, Y), T).
-
-%% action push_up
-% préconditions
-:-  do(push_up, T), 
-    fluent(at(X, Y), T), 
-    not fluent(block(X+1,Y), T).
-
-:-  do(push_up, T), 
-    fluent(at(X, Y), T), 
-    not case(X+2, Y).
-
-:-  do(push_up, T), 
-    fluent(at(X, Y), T),
-    fluent(block(X+2, Y), T).
-
-% effets
-fluent(at(X+1, Y), T + 1) :- 
-    do(push_up, T),
-    fluent(at(X, Y), T).
-
-fluent(block(X+2, Y), T + 1) :- 
-    do(push_up, T),
-    fluent(at(X, Y), T).
-
-removed(block(X+1, Y), T) :- 
-    do(push_up, T),
-    fluent(at(X, Y), T).
-
-removed(at(X, Y), T) :- 
-    do(push_up, T),
-    fluent(at(X, Y), T).
-
-%% action push_down
-% préconditions
-:-  do(push_down, T), 
-    fluent(at(X, Y), T), 
-    not fluent(block(X-1,Y), T).
-
-:-  do(push_down, T), 
-    fluent(at(X, Y), T), 
-    not case(X-2, Y).
-
-:-  do(push_down, T), 
-    fluent(at(X, Y), T),
-    fluent(block(X-2, Y), T).
-
-% effets
-fluent(at(X-1, Y), T + 1) :- 
-    do(push_down, T),
-    fluent(at(X, Y), T).
-
-fluent(block(X-2, Y), T + 1) :- 
-    do(push_down, T),
-    fluent(at(X, Y), T).
-
-removed(block(X-1, Y), T) :- 
-    do(push_down, T),
-    fluent(at(X, Y), T).
-
-removed(at(X, Y), T) :- 
-    do(push_down, T),
-    fluent(at(X, Y), T).
-
-%% action monster_right
-% préconditions
+%% ACTION : POUSSER MONSTRE
+% a) préconditions
 :-  do(monster_right, T), 
     fluent(at(X, Y), T), 
     not fluent(mob(X,Y+1), T).
@@ -317,7 +239,7 @@ removed(at(X, Y), T) :-
     fluent(at(X, Y), T),
     fluent(mob(X, Y+2), T).
 
-% effets
+% b) effets
 fluent(at(X, Y+1), T + 1) :- 
     do(monster_right, T),
     fluent(at(X, Y), T).
@@ -326,7 +248,7 @@ fluent(mob(X, Y+2), T + 1) :-
     do(monster_right, T),
     fluent(at(X, Y), T).
 
-removed(mob(X, Y+1), T) :- 
+removed(mob(X, Y+2), T) :- 
     do(monster_right, T),
     fluent(at(X, Y), T).
 
@@ -334,10 +256,6 @@ removed(at(X, Y), T) :-
     do(monster_right, T),
     fluent(at(X, Y), T).
 
-removed(mob(X,Y+2),T) :-
-    do(monster_right, T),
-    not case(X,Y+2),
-    fluent(at(X,Y),T).
 
 
 %%% Frame Problem
