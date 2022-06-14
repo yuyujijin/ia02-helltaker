@@ -1,4 +1,5 @@
 #!/bin/bash
+echo $0
 FILES="./levels";
 bold=$(tput bold)
 normal=$(tput sgr0)
@@ -13,7 +14,7 @@ else
     CMD=$1
     echo -n 'Using '
 fi
-echo "$CMD${normal}\n"
+echo -e "$CMD${normal}\n"
 
 
 for f in $(find $FILES -type f | sort)
@@ -23,5 +24,5 @@ do
     echo $($CMD --filename $f)
     res2=$(date +%s.%N)
     dt=$(echo "$res2 - $res1" | bc)
-    echo "${green}Program executed in $dt seconds.${nc}\n"
+    echo -e "${green}Program executed in $dt seconds.${nc}\n"
 done
