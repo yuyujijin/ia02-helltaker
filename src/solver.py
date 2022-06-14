@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+from collections import deque
 import sys
 import os
 # Used to import helltaker_utils
@@ -340,14 +341,13 @@ from search import remove_prof, insert_prof
 from search import remove_head, insert_tail
 
 algorithms = {
-    'BFS': {'remove': remove_head, 'insert': insert_tail},
-    'DFS': {'remove': remove_prof, 'insert': insert_prof},
-    'A*': {'remove': remove_astar, 'insert': insert_astar, 
-        'heuristic': {
+    'BFS': {'remove': remove_head, 'insert': insert_tail, 'data_structure' : deque([])},
+    'DFS': {'remove': remove_prof, 'insert': insert_prof, 'data_structure' : deque([])},
+    'A*': {'remove': remove_astar, 'insert': insert_astar, 'heuristic': {
             'manhattan' : heuristic_manhattan_factory,
             'manhattan_advanced' : heuristic_manhattan_advanced_factory,
             'euclidean' : heuristic_euclidean_factory
-        }
+        }, 'data_structure' : list()
     }
 }
 
@@ -371,6 +371,8 @@ def solve(filename: str, algorithm: str, heuristic : str, verbose: bool, arrow: 
     # Retrieve the search algorithms
     remove, insert = algorithms[algorithm]['remove'], algorithms[algorithm]['insert']
 
+    data_structure = algorithms[algorithm]['data_structure']
+
     # Search using the parameters
     # If it uses an heuristics, use it
     if 'heuristic' in algorithms[algorithm].keys():
@@ -380,11 +382,11 @@ def solve(filename: str, algorithm: str, heuristic : str, verbose: bool, arrow: 
         # Retrieve the heuristic
         heuristic = algorithms[algorithm]['heuristic'][heuristic](map_rules)
         s_end, save = search_with_parent(s0, goal_factory(map_rules), succ_factory(
-            map_rules), remove, insert, debug=verbose, heuristic=heuristic)
+            map_rules), remove, insert, debug=verbose, heuristic=heuristic, l = data_structure)
     else:
         # Else ignore it
         s_end, save = search_with_parent(s0, goal_factory(
-            map_rules), succ_factory(map_rules), remove, insert, debug=verbose)
+            map_rules), succ_factory(map_rules), remove, insert, debug=verbose, l = data_structure)
 
     # If solution found
     if s_end:

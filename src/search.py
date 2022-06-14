@@ -1,50 +1,47 @@
 from utils import State, Action
 from typing import List, Tuple, Callable, Dict
 import heapq
+from collections import deque
 
 # SEARCH APPENDING / REMOVING
 
 # BFS Search (Parcours en largeur)
 # Insert at the end of the list
-def insert_tail(s: State, L: List[State]) -> List[State]:
-    L.append(s)
+def insert_tail(elt: State, L: List[State]) -> List[State]:
+    L.append(elt)
     return L
 
 # Remove the head of the list
 def remove_head(L: List[State]) -> Tuple[State, List[State]]:
-    if len(L) != 0:
-        elt = L.pop(0)
-        return(elt, L)
-    return (None, [])
+    elt = L.popleft()
+    return(elt, L)
 
 # DFS Search (Parcours en profondeur)
 # Insert at the head of the list
 def insert_prof(elt: State, L: List[State]) -> List[State]:
-    L += [elt]
+    L.appendleft(elt)
     return L
 
 # Remove the end of the list
 def remove_prof(L: List[State]) -> Tuple[State, List[State]]:
-    if len(L) != 0:
-        elt = L.pop()
-        return(elt, L)
-    return (None, [])
+    elt = L.pop()
+    return(elt, L)
 
 # A* Search
 # Factories for heuristic
 def heuristic_manhattan_factory(map_rules: Dict[str, set]) -> Callable[[State, int], int]:
     # Manhattan
-    def heuristic_astar(elt: State, g: int) -> int:
+    def heuristic_astar(elt: State) -> int:
         (x, y) = elt.me
         (x_end, y_end) = list(map_rules['goals'])[0]
-        h2 = abs(x - x_end) + abs(y - y_end)
-        return h2 + g
+        h = abs(x - x_end) + abs(y - y_end)
+        return h
     return heuristic_astar
 
 # An advanced version of manhattan searching first for keys, then locks then goal
 def heuristic_manhattan_advanced_factory(map_rules: Dict[str, set]) -> Callable[[State, int], int]:
     # Manhattan
-    def heuristic_astar(elt: State, g: int) -> int:
+    def heuristic_astar(elt: State) -> int:
         (x, y) = elt.me
         # If there is a key go get it
         if len(elt.keys) > 0:
@@ -55,17 +52,17 @@ def heuristic_manhattan_advanced_factory(map_rules: Dict[str, set]) -> Callable[
         # Else aim for the goal
         else:
             (x_end, y_end) = list(map_rules['goals'])[0]
-        h2 = abs(x - x_end) + abs(y - y_end)
-        return h2 + g
+        h = abs(x - x_end) + abs(y - y_end)
+        return h
     return heuristic_astar
 
 # Euclidean
 def heuristic_euclidean_factory(map_rules: Dict[str, set]) -> Callable[[State, int], int]:
-    def heuristic_astar(elt: State, g: int) -> int:
+    def heuristic_astar(elt: State) -> int:
         (x, y) = elt.me
         (x_end, y_end) = list(map_rules['goals'])[0]
-        h2 = (x - x_end)**2 + (y - y_end)**2
-        return h2 + g
+        h = (x - x_end)**2 + (y - y_end)**2
+        return h
     return heuristic_astar
 
 # Insert in order of heuristics
@@ -85,9 +82,12 @@ def search_with_parent(s0: State,
                        insert: Callable[[State, List[State]], List[State]],
                        # Default heuristic just doesn't value anything
                        heuristic: Callable[[
-                           Tuple[State, int]], int] = lambda s, h: 0,
-                       debug: bool = True):
-    l = [(0, 0, s0)]
+                           Tuple[State, int]], int] = lambda s: 0,
+                       debug: bool = True,
+                       l = []):
+    # Insertion first element
+    l = insert((0, 0, s0), l)
+    # Save for traceback
     save = {s0: None}
     s = s0
     # While l is not empty
@@ -96,7 +96,7 @@ def search_with_parent(s0: State,
         if debug:
             print("l =", l)
         # Remove the head of the list with heuristics
-        (h, g, s), l = remove(l)
+        (_, g, s), l = remove(l)
         # For every possible successors
         for s2, a in succ(s).items():
             # If exact same state is not already visited
@@ -107,8 +107,7 @@ def search_with_parent(s0: State,
                 if goals(s2):
                     return s2, save
                 # Else insert it in the list and repeat
-                # Seems like using 0 works...
-                h2 = heuristic(s2, 0)
+                h2 = heuristic(s2) + g
                 l = insert((h2, g + 1, s2), l)
     # Nothing found
     return None, save
