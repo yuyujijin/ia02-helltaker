@@ -222,17 +222,19 @@ def do(action : Action, state : State, map_rules : Dict[str,set]) -> State:
         # Get the tile were the block would be pushed
         x2 = one_step(x1, action.direction)
         # if there is a block on 
-        if x1 in blocks and free(x2, map_rules) and not (x2 in locks | mobs | blocks):
+        if x1 in blocks:
             # We move ourselve and decrement the number of max_steps by one
             newState = copy_state(state)
             # Turn cost
             newState = action_cost(newState, map_rules)
             if newState.max_steps < 0 : 
                 return None
-            # Remove the block and add its new position
-            newBlocks = remove_in_frozenset(blocks, x1)
-            newBlocks = add_in_frozenset(newBlocks, x2)
-            newState = newState._replace(blocks = newBlocks)
+            # If nothing is behind we push
+            if free(x2, map_rules) and not (x2 in locks | mobs | blocks):
+                # Remove the block and add its new position
+                newBlocks = remove_in_frozenset(blocks, x1)
+                newBlocks = add_in_frozenset(newBlocks, x2)
+                newState = newState._replace(blocks = newBlocks)
             # Then return
             return newState
         else:
