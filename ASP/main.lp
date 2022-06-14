@@ -8,6 +8,8 @@
 
 %% clingo -c h=24 -n0 main.lp
 
+%%level 1
+
 step(0..h-1).
 
 
@@ -85,6 +87,7 @@ fluent(F, 0) :- init(F).
 
 %%% générateur d'actions..
 { do(Act, T): action(Act) } = 1 :- step(T).
+
 
 %%% les actions
 %%  action left
@@ -332,6 +335,37 @@ removed(mob(X, Y+2), T) :-
 
 removed(at(X, Y), T) :- 
     do(monster_right, T),
+    fluent(at(X, Y), T).
+
+%% action monster_left
+% préconditions
+:-  do(monster_left, T), 
+    fluent(at(X, Y), T), 
+    not fluent(mob(X,Y-1), T).
+
+:-  do(monster_left, T), 
+    fluent(at(X, Y), T), 
+    not case(X, Y-2).
+
+:-  do(monster_left, T), 
+    fluent(at(X, Y), T),
+    fluent(mob(X, Y-2), T).
+
+% effets
+fluent(at(X, Y-1), T + 1) :- 
+    do(monster_left, T),
+    fluent(at(X, Y), T).
+
+fluent(mob(X, Y-2), T + 1) :- 
+    do(monster_left, T),
+    fluent(at(X, Y), T).
+
+removed(mob(X, Y-2), T) :- 
+    do(monster_left, T),
+    fluent(at(X, Y), T).
+
+removed(at(X, Y), T) :- 
+    do(monster_left, T),
     fluent(at(X, Y), T).
 
 
