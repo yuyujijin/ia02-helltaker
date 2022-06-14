@@ -1,11 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%        HELLTAKER IN ASP        %%%
 %%%         version: 0.1           %%%
-%%%    authors : HABERT Thomas     %%%
-%%%              MASSINON Isabelle %%%
-%%%              VALTY Eugène      %%%
+%%%  authors : HABERT Thomas       %%%
+%%%            MASSINON Isabelle   %%%
+%%%            VALTY Eugène        %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% clingo -c horizon=10 -n0 main.pl
 
 % state(me(X,Y), hit(X), monster(M), rock(R), safe(S), unsafe(U), key(K), lock(L)).
 

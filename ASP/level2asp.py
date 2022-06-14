@@ -6,7 +6,8 @@ def level2ASP(file :str):
     var = grid_from_file(file)
     print(var)
 
-    f = open("test.txt", "a")
+    f = open("test.txt", "w")
+
 
     tab=var["grid"]
 
@@ -27,7 +28,7 @@ def level2ASP(file :str):
                 if k == tab[i][j] == 'D':
                     tmp="goal(pos(%s,%s)).\n" %(i,j)
                     f.write(tmp)
-    f.write("state(")   
+        f.write("state(")   
         for i in range(var["m"]):
             for j in range(var["n"]):
                 if k == tab[i][j] == 'H':
@@ -46,4 +47,4 @@ def level2ASP(file :str):
                     print("unsafe(",i,",",j,").")      
     f.close()
 
-level2ASP("levels\level2.txt")
+level2ASP("levels\level4.txt")
