@@ -91,7 +91,11 @@ fluent(F, 0) :- init(F).
 % préconditions
 :-  do(left, T), 
     fluent(at(X, Y), T), 
-    fluent(block(X, Y - 1), T) | fluent(mob(X,Y-1),T).
+    fluent(block(X, Y - 1), T).
+
+:-  do(left, T), 
+    fluent(at(X, Y), T), 
+    fluent(mob(X, Y - 1), T).
 
 :-  do(left, T), 
     fluent(at(X, Y), T), 
