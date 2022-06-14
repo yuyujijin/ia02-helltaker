@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%        HELLTAKER IN ASP        %%%
+%%%        HELLTAKER IN PROLOG     %%%
 %%%         version: 0.1           %%%
 %%%  authors : HABERT Thomas       %%%
 %%%            MASSINON Isabelle   %%%
@@ -10,6 +10,69 @@
 
 % state(me(X,Y), hit(X), monster(M), rock(R), safe(S), unsafe(U), key(K), lock(L)).
 
+case(pos(1,4)).
+case(pos(2,1)).
+case(pos(2,5)).
+case(pos(2,7)).
+case(pos(3,2)).
+case(pos(3,4)).
+case(pos(3,7)).
+case(pos(4,1)).
+case(pos(4,3)).
+case(pos(4,5)).
+case(pos(4,8)).
+case(pos(5,2)).
+case(pos(5,4)).
+case(pos(5,6)).
+wall(pos(0,0)).
+wall(pos(0,1)).
+wall(pos(0,2)).
+wall(pos(0,3)).
+wall(pos(0,4)).
+wall(pos(0,5)).
+wall(pos(0,6)).
+wall(pos(0,7)).
+wall(pos(0,8)).
+wall(pos(0,9)).
+wall(pos(1,0)).
+wall(pos(1,2)).
+wall(pos(1,6)).
+wall(pos(1,7)).
+wall(pos(1,8)).
+wall(pos(1,9)).
+wall(pos(2,0)).
+wall(pos(2,8)).
+wall(pos(2,9)).
+wall(pos(3,0)).
+wall(pos(3,9)).
+wall(pos(4,0)).
+wall(pos(4,9)).
+wall(pos(5,0)).
+wall(pos(5,1)).
+wall(pos(5,7)).
+wall(pos(5,8)).
+wall(pos(5,9)).
+wall(pos(6,0)).
+wall(pos(6,1)).
+wall(pos(6,2)).
+wall(pos(6,3)).
+wall(pos(6,4)).
+wall(pos(6,5)).
+wall(pos(6,6)).
+wall(pos(6,7)).
+wall(pos(6,8)).
+wall(pos(6,9)).
+goal(pos(3,8)).
+spike(pos(2,3)).
+start(state(
+	player(pos(1,1)),
+	rock([pos(1,5),pos(2,2),pos(3,1),pos(3,3),pos(3,5),pos(3,6),pos(4,2),pos(4,4),pos(4,6),pos(4,7),pos(5,3),pos(5,5)]),
+	key(pos(1,3)),
+	lock([pos(2,6)]),
+	monster([]),
+	safe([]),
+	unsafe([])
+)).
 %%%%%% UTILITAIRES %%%%%%
 
 notIn(_,[]).
@@ -77,8 +140,8 @@ do(act(collect,D),
 
 %Pousser un rocher
 do(act(pushRock,D),
-    state(me(X1,Y1), hit(H), monster(M), rock(R1), safe(S), unsafe(U), key(K), lock(L)),
-    state(me(X1,Y1), hit(H), monster(M), rock([(X3,Y3)|R2]), safe(U), unsafe(S), key(K), lock(L))) :-
+    state(me(X1,Y1), hit(H1), monster(M), rock(R1), safe(S), unsafe(U), key(K), lock(L)),
+    state(me(X1,Y1), hit(H2), monster(M), rock([(X3,Y3)|R2]), safe(U), unsafe(S), key(K), lock(L))) :-
         positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
         enleve(pos(X2,Y2),R1,R2),
         positionRelative(D,pos(X2,Y2),pos(X3,Y3)),
@@ -92,8 +155,8 @@ do(act(pushRock,D),
 
 % Juste pousser le monstre
 do(act(pushMonster,D),
-    state(me(X1,Y1), hit(H), monster(M1), rock(R), safe(S), unsafe(U), key(K), lock(L)),
-    state(me(X1,Y1), hit(H), monster([(X3,Y3)|M2]), rock(R), safe(U), unsafe(S), key(K), lock(L))) :-
+    state(me(X1,Y1), hit(H1), monster(M1), rock(R), safe(S), unsafe(U), key(K), lock(L)),
+    state(me(X1,Y1), hit(H2), monster([(X3,Y3)|M2]), rock(R), safe(U), unsafe(S), key(K), lock(L))) :-
         positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
         enleve(pos(X2,Y2),M1,M2),
         positionRelative(D,pos(X2,Y2),pos(X3,Y3)),
@@ -108,10 +171,9 @@ do(act(pushMonster,D),
 
 %Pousser le monstre sur un mur = le tuer
 do(act(pushMonster,D),
-    state(me(X1,Y1), hit(H), monster(M1), rock(R), safe(S), unsafe(U), key(K), lock(L)),
-    state(me(X1,Y1), hit(H), monster(M2), rock(R), safe(U), unsafe(S), key(K), lock(L))) :-
+    state(me(X1,Y1), hit(H1), monster(M1), rock(R), safe(S), unsafe(U), key(K), lock(L)),
+    state(me(X1,Y1), hit(H2), monster(M2), rock(R), safe(U), unsafe(S), key(K), lock(L))) :-
         positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
-        enleve(pos(X2,Y2),R1,R2),
         positionRelative(D,pos(X2,Y2),pos(X3,Y3)),
         wall(X3,Y3),
         enleve(pos(X2,Y2),M1,M2),
@@ -208,3 +270,6 @@ victory(state(me(X,Y), hit(H), monster(_), rock(_), safe(_), unsafe(_), key(_), 
 victory(state(me(X,Y), hit(H), monster(_), rock(_), safe(_), unsafe(_), key(_), kown(_), lock(_))) :- 
     goal(X-1,Y),
     H >= 0. 
+
+
+
