@@ -190,7 +190,7 @@ removed(at(X, Y), T) :-
 
 :-  do(push_right, T), 
     fluent(at(X, Y), T), 
-    not case(X, Y + 2), not fluent(spike(X,Y+2),T).
+    not case(X, Y + 2).
 
 :-  do(push_right, T), 
     fluent(at(X, Y), T),
@@ -329,7 +329,7 @@ fluent(mob(X, Y+2), T + 1) :-
     do(monster_right, T),
     fluent(at(X, Y), T).
 
-removed(mob(X, Y+2), T) :- 
+removed(mob(X, Y+1), T) :- 
     do(monster_right, T),
     fluent(at(X, Y), T).
 
@@ -337,36 +337,6 @@ removed(at(X, Y), T) :-
     do(monster_right, T),
     fluent(at(X, Y), T).
 
-%% action monster_left
-% préconditions
-:-  do(monster_left, T), 
-    fluent(at(X, Y), T), 
-    not fluent(mob(X,Y-1), T).
-
-:-  do(monster_left, T), 
-    fluent(at(X, Y), T), 
-    not case(X, Y-2).
-
-:-  do(monster_left, T), 
-    fluent(at(X, Y), T),
-    fluent(mob(X, Y-2), T).
-
-% effets
-fluent(at(X, Y-1), T + 1) :- 
-    do(monster_left, T),
-    fluent(at(X, Y), T).
-
-fluent(mob(X, Y-2), T + 1) :- 
-    do(monster_left, T),
-    fluent(at(X, Y), T).
-
-removed(mob(X, Y-2), T) :- 
-    do(monster_left, T),
-    fluent(at(X, Y), T).
-
-removed(at(X, Y), T) :- 
-    do(monster_left, T),
-    fluent(at(X, Y), T).
 
 
 %%% Frame Problem
