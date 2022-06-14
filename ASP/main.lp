@@ -258,7 +258,7 @@ removed(at(X, Y), T) :-
 
 removed(mob(X, Y+2), T) :- 
     do(monster_right, T),
-    case(X,Y+2),
+    not case(X,Y+2),
     fluent(at(X, Y), T).
 
 %%% Frame Problem
