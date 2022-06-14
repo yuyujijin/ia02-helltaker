@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%        HELLTAKER IN ASP        %%%
+%%%        HELLTAKER IN PROLOG     %%%
 %%%         version: 0.1           %%%
 %%%    authors : HABERT Thomas     %%%
 %%%              MASSINON Isabelle %%%

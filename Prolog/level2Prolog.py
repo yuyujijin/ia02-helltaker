@@ -3,7 +3,7 @@ import sys, os
 sys.path.append(os.path.join(sys.path[0],'..','python'))
 from helltaker_utils import grid_from_file
 
-def level2ASP(file: str):
+def level2Prolog(file: str):
     var = grid_from_file(file)
     print(var)
 
@@ -124,4 +124,4 @@ def level2ASP(file: str):
     f.close()
 
 
-level2ASP("levels\level4.txt")
+level2Prolog("levels/level4.txt")
