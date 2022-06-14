@@ -125,13 +125,13 @@ positionRelative(left,pos(X1,Y),pos(X2,Y)) :-
     fluent(at(X1, Y1), T), 
     fluent(mob(X2, Y2), T).
 
-    %% Pas de mob où on veut aller
+    %% Pas de lock où on veut aller
 :-  do(D, T), 
     positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T), 
     fluent(lock(X2, Y2), T).
 
-%% 
+    %% Case où on veut aller
 :-  do(D, T),
     positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T), 
@@ -248,7 +248,7 @@ fluent(mob(X, Y+2), T + 1) :-
     do(monster_right, T),
     fluent(at(X, Y), T).
 
-removed(mob(X, Y+2), T) :- 
+removed(mob(X, Y+1), T) :- 
     do(monster_right, T),
     fluent(at(X, Y), T).
 
@@ -256,7 +256,10 @@ removed(at(X, Y), T) :-
     do(monster_right, T),
     fluent(at(X, Y), T).
 
-
+removed(mob(X, Y+2), T) :- 
+    do(monster_right, T),
+    case(X,Y+2),
+    fluent(at(X, Y), T).
 
 %%% Frame Problem
 % les fluents qui n'ont pas été supprimés restent à leur valeur
