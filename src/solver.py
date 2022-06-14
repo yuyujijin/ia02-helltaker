@@ -289,6 +289,8 @@ def do(action: Action, state: State, map_rules: Dict[str, set]) -> State:
     return None
 
 # Factory for goals
+
+
 def goal_factory(map_rules: Dict[str, set]) -> Callable[[State], bool]:
     def goals(state: State):
         offsets = [(0, 1), (1, 0), (0, -1), (-1, 0)]
