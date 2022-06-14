@@ -15,23 +15,19 @@ step(0..h-1).
 
 %les actions
 action( 
-    right;
-    left;
-    up;
-    down;
-    push_right;
-    push_left;
-    push_down;
-    push_up;
-    monster_right;
-    monster_left;
-    monster_down;
-    monster_up
+    move;
+    push;
+    monster
     ).
 
+direction(
+    up;
+    right;
+    down;
+    left
+).
+
 %%% l'init
-
-
 case(0,0).
 case(0,1).
 case(0,2).
@@ -84,7 +80,7 @@ fluent(F, 0) :- init(F).
 :- goal(F), not fluent(F, h).
 
 %%% générateur d'actions..
-{ do(Act, T): action(Act) } = 1 :- step(T).
+{ do(Act, To, T): action(Act), direction(To) } = 1 :- step(T).
 
 % Trouver la direction
 %% Calculer l'endroit où sera situé un objet relativement à une position en fonction d'une direction donnée en param
@@ -114,19 +110,19 @@ positionRelative(left,pos(X1,Y),pos(X2,Y)) :-
 % a) préconditions
 
 %% Pas de blocs où on veut aller
-:-  do(D, T),
+:-  do(move, D, T),
     positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T), 
     fluent(block(X2, Y2), T).
 
 %% Pas de mob où on veut aller
-:-  do(D, T), 
+:-  do(move, D, T), 
     positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T), 
     fluent(mob(X2, Y2), T).
 
 %% Pas de serrure où on veut aller
-:-  do(D, T),
+:-  do(move, D, T),
     positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T), 
     not case(X2, Y2),
@@ -135,13 +131,13 @@ positionRelative(left,pos(X1,Y),pos(X2,Y)) :-
 % b) effets
 %% Update la position du perso
 fluent(at(X2, Y2), T + 1) :-
-    do(D, T),
+    do(move, D, T),
     positionRelative(D, pos(X1,Y1),pos(X2,Y2)),    
     fluent(at(X1, Y1), T).
 
 %% Donne l'attribut "removed" quand le perso a fait une action
 removed(at(X, Y), T) :-
-    do(_, T),
+    do(move, _, T),
     fluent(at(X, Y), T).
  
 % Pushs relatifs
@@ -170,94 +166,162 @@ pushRelative(left,pos(X1,Y),pos(X2,Y)) :-
 % a) préconditions
 
 % check s'il y a bien un bloc où on veut pousser
-:-  do(D, T),
+:-  do(push, D, T),
     positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T), 
     not fluent(block(X2, Y2), T).
 
-% check s'il ya bien une case où on veut pousser
-:-  do(push_right, T), 
-    fluent(at(X, Y), T), 
-    not case(X, Y + 2).
+% si ya une case derriere on peut pousser
+:-  do(push, D, T),
+    pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T), 
+    not case(X2, Y2).
 
-:-  do(push_right, T), 
-    fluent(at(X, Y), T), 
-    not fluent(spike(X,Y+2),T).
+% Si ya des pics derriere on peut pousser
+:-  do(push, D, T), 
+    pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T), 
+    not fluent(spike(X2,Y2),T).
+
+% Si ya une clé derriere on peut pousser
+:-  do(push, D, T), 
+    pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T), 
+    not fluent(key(X2,Y2),T).
 
 % check qu'il n'y a pas de bloc où on veut pousser
-:-  do(push_right, T), 
+:-  do(push, D, T), 
     pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T),
     fluent(block(X2, Y2), T).
 
 % check qu'il n'y a pas de lock où on veut pousser
-:-  do(push_right, T), 
+:-  do(push, D, T), 
     pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T),
     fluent(lock(X2, Y2), T).
 
 % check s'il n'y a pas de monstre où on veut pousser
-:-  do(push_right, T), 
+:-  do(push, D, T), 
     pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T),
-    fluent(lock(X2, Y2), T).
+    fluent(mob(X2, Y2), T).
+
+% check s'il n'y a pas le goal où on peut pousser
+:-  do(push, D, T), 
+    pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T),
+    fluent(goal(X2, Y2), T).
 
 % b) effets
-fluent(at(X, Y + 1), T + 1) :- 
-    do(push_right, T),
-    fluent(at(X, Y), T).
+% Update la position du bloc
+fluent(block(X2, Y2), T + 1) :- 
+    do(push, D, T),
+    pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T).
 
-fluent(block(X, Y + 2), T + 1) :- 
-    do(push_right, T),
-    fluent(at(X, Y), T).
-
-removed(block(X, Y + 1), T) :- 
-    do(push_right, T),
-    fluent(at(X, Y), T).
-
-removed(at(X, Y), T) :- 
-    do(push_right, T),
-    fluent(at(X, Y), T).
-
+% Si block poussé, son ancienne position est notée removed
+removed(block(X2, Y2), T) :- 
+    do(push, D, T),
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T).
 
 %% ACTION : POUSSER MONSTRE
 % a) préconditions
-:-  do(monster_right, T), 
-    fluent(at(X, Y), T), 
-    not fluent(mob(X,Y+1), T).
 
-:-  do(monster_right, T), 
-    fluent(at(X, Y), T), 
-    not case(X, Y+2).
+% Verifier qu'il y a bien un monstre à pousser
+:-  do(monster, D, T), 
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T), 
+    not fluent(mob(X2,Y2), T).
 
-:-  do(monster_right, T), 
-    fluent(at(X, Y), T),
-    fluent(mob(X, Y+2), T).
+% Si case derriere on peut pousser
+:-  do(monster, D, T),
+    pushRelative(D, pos(X1, Y1), pos(X2, Y2)),
+    fluent(at(X1, Y1), T), 
+    not case(X2, Y2).
+
+% Si block derriere on peut pousser
+:-  do(monster, D, T),
+    pushRelative(D, pos(X1, Y1), pos(X2, Y2)),
+    fluent(at(X1, Y1), T), 
+    not block(X2, Y2).
+
+% Si pic derriere on peut pousser
+:-  do(monster, D, T),
+    pushRelative(D, pos(X1, Y1), pos(X2, Y2)),
+    fluent(at(X1, Y1), T), 
+    not spikes(X2, Y2).
+
+% Si key derriere on peut pousser
+:-  do(monster, D, T),
+    pushRelative(D, pos(X1, Y1), pos(X2, Y2)),
+    fluent(at(X1, Y1), T), 
+    not key(X2, Y2).
+
+% Si lock derriere = ??? MAIS c'est pas possible de le faire dans le jeu donc OSEF
+
+% Si mob derriere on peut PAS pousser
+:-  do(monster, D, T), 
+    pushRelative(D, pos(X1,Y1), pos(X2, Y2)),
+    fluent(at(X1, Y1), T),
+    fluent(mob(X2, Y2), T).
 
 % b) effets
-fluent(at(X, Y+1), T + 1) :- 
-    do(monster_right, T),
-    fluent(at(X, Y), T).
+% Update la position du monstre
+fluent(mob(X2, Y2), T + 1) :- 
+    do(monster, D, T),
+    pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T).
 
-fluent(mob(X, Y+2), T + 1) :- 
-    do(monster_right, T),
-    fluent(at(X, Y), T).
+% Le monstre est marqué comme removed, s'il rentre en contact avec :
+%%% Un bloc 
+removed(mob(X2, Y2), T) :- 
+    do(monster, D, T),
+    pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    block(pos(X2,Y2)),
+    fluent(at(X1, Y1), T).
+%%% Un pic 
+removed(mob(X2, Y2), T) :- 
+    do(monster, D, T),
+    pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    spike(pos(X2,Y2)),
+    fluent(at(X1, Y1), T).
+%%% Un mur : COMMENT FAIRE ?
 
-removed(mob(X, Y+2), T) :- 
-    do(monster_right, T),
-    fluent(at(X, Y), T).
 
-removed(at(X, Y), T) :- 
-    do(monster_right, T),
-    fluent(at(X, Y), T).
+% Si block poussé, son ancienne position est notée removed
+removed(mob(X2, Y2), T) :- 
+    do(monster, D, T),
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% Intervertir les safe et unsafe %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Safe
+fluent(safe(U),T+1) :-
+    do(_,_,T), %pour dire "si une action (peu importe laquelle) est faite au tour T" ==> jsp si utile
+    fluent(unsafe(U),T).
 
+%% Unsafe
+fluent(unsafe(S),T+1) :-
+    do(_,_,T), %pour dire "si une action (peu importe laquelle) est faite au tour T" ==> jsp si utile
+    fluent(safe(S),T).
 
-%%% Frame Problem
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%% Frame Problem %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % les fluents qui n'ont pas été supprimés restent à leur valeur
 fluent(F, T + 1) :- 
     fluent(F, T), 
     T + 1 <= h,
     not removed(F, T).
 
-#show do/2.
+fluent(F, T + 1) :-
+    fluent(F, T),
+    achieved(T),
+    T + 1 <= maxstep.
+
+
+#show do/3.
