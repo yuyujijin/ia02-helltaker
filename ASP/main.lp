@@ -205,7 +205,7 @@ pushRelative(left,pos(X1,Y),pos(X2,Y)) :-
 :-  do(push_right, T), 
     pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T),
-    fluent(lock(X2, Y2), T).
+    fluent(mob(X2, Y2), T).
 
 % b) effets
 fluent(at(X, Y + 1), T + 1) :- 
