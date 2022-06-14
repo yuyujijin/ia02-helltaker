@@ -4,7 +4,8 @@ Action = namedtuple('action', ('verb', 'direction'))
 State = namedtuple('state',('me','max_steps','nbKeys', 'blocks', 
 'keys', 'locks', 'mobs', 'safeTraps', 'unsafeTraps'))
 
-actionNames = ['move', 'unlock', 'push', 'kill']
+actionNames = ['move', 'moveSpike', 'moveTrap', 
+'moveKey', 'unlock', 'pushBlock', 'pushMob', 'killMob']
 
 actions = {d : [] for d in 'hbgd'}
 

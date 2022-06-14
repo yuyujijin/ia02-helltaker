@@ -2,7 +2,7 @@
 import sys
 import os
 # Used to import helltaker_utils
-sys.path.append(os.path.join(sys.path[0], "..", "python"))
+sys.path.append(os.path.join(sys.path[0], "..","..", "python"))
 import helltaker_utils
 
 from utils import Action, State, actions
@@ -155,9 +155,9 @@ def do(action: Action, state: State, map_rules: Dict[str, set]) -> State:
     # We make the action
     x1 = one_step(x0, action.direction)
 
-    # NOW DEFINE EVERY POSSIBLE ACTIONS
+    # NOW DEFINE EVERY POSSIBLE ACTIONS (REDUNDANT)
+    # Simple move
     if action.verb == 'move':
-        # Simple move
         # if tile is accessible and empty
         if free(x1, map_rules) and not (x1 in blocks | mobs | spikes
                                         | safeTraps | unsafeTraps | keys | locks):
@@ -170,9 +170,12 @@ def do(action: Action, state: State, map_rules: Dict[str, set]) -> State:
                 return None
             # The return
             return newState
-        # Move on a spike
+        else:
+            return None
+    # Move on a spike
+    elif action.verb == 'moveSpike':
         # if tile is accessible and has spikes on it
-        elif not (x1 in blocks) and (x1 in spikes):
+        if not (x1 in blocks) and (x1 in spikes):
             # We move ourselve
             newState = copy_state(state)
             newState = newState._replace(me=x1)
@@ -182,9 +185,12 @@ def do(action: Action, state: State, map_rules: Dict[str, set]) -> State:
                 return None
             # The return
             return newState
-        # Move on a trap
+        else:
+            return None
+    # Move on a trap
+    elif action.verb == 'moveTrap':
         # if tile is accessible and has traps on it
-        elif not (x1 in blocks) and (x1 in safeTraps | unsafeTraps):
+        if not (x1 in blocks) and (x1 in safeTraps | unsafeTraps):
             # We move ourselve
             newState = copy_state(state)
             newState = newState._replace(me=x1)
@@ -194,9 +200,12 @@ def do(action: Action, state: State, map_rules: Dict[str, set]) -> State:
                 return None
             # The return
             return newState
-        # Move on a key
+        else:
+            return None
+    # Move on a key
+    elif action.verb == 'moveKey':
         # if tile is accessible and has key on it
-        elif (x1 in keys) and not (x1 in blocks):
+        if (x1 in keys) and not (x1 in blocks):
             # We move ourselve and decrement the number of max_steps by one
             newState = copy_state(state)
             newState = newState._replace(me=x1)
@@ -233,11 +242,11 @@ def do(action: Action, state: State, map_rules: Dict[str, set]) -> State:
             return newState
         else:
             return None
-    elif action.verb == 'push':
+    # Push a block
+    elif action.verb == 'pushBlock':
         # Get the tile were the block would be pushed
         x2 = one_step(x1, action.direction)
         # if there is a block on
-        # Push a block
         if x1 in blocks:
             # We move ourselve and decrement the number of max_steps by one
             newState = copy_state(state)
@@ -253,7 +262,13 @@ def do(action: Action, state: State, map_rules: Dict[str, set]) -> State:
                 newState = newState._replace(blocks=newBlocks)
             # Then return
             return newState
-        elif x1 in mobs and free(x2, map_rules) and not (x2 in keys | locks | mobs | blocks):
+        else:
+            return None
+    # Push a mob
+    elif action.verb == 'pushMob':
+        # Get the tile were the mob would be pushed
+        x2 = one_step(x1, action.direction)
+        if x1 in mobs and free(x2, map_rules) and not (x2 in keys | locks | mobs | blocks):
             # We move ourselve and decrement the number of max_steps by one
             newState = copy_state(state)
             # Turn cost
@@ -268,7 +283,8 @@ def do(action: Action, state: State, map_rules: Dict[str, set]) -> State:
             return newState
         else:
             return None
-    elif action.verb == 'kill':
+    # Kill a mob
+    elif action.verb == 'killMob':
         # Get the tile were the mob would be pushed
         x2 = one_step(x1, action.direction)
         if x1 in mobs and (not free(x2, map_rules) or x2 in blocks):
@@ -289,6 +305,8 @@ def do(action: Action, state: State, map_rules: Dict[str, set]) -> State:
     return None
 
 # Factory for goals
+
+
 def goal_factory(map_rules: Dict[str, set]) -> Callable[[State], bool]:
     def goals(state: State):
         offsets = [(0, 1), (1, 0), (0, -1), (-1, 0)]
