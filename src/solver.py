@@ -3,6 +3,7 @@
 import sys
 import argparse
 from turtle import st
+
 sys.path.append('./python')
 import helltaker_utils
 from typing import Callable, Dict, List, Set, Tuple
@@ -313,10 +314,13 @@ from search import search_with_parent
 from search import remove_head, insert_tail
 # DFS Search (Parcours en Profondeur)
 from search import remove_prof, insert_prof
+# A* Search
+from search import remove_astar, insert_astar, heuristic_astar_factory
 
 algorithms = {
     'BFS' : {'remove' : remove_head, 'insert': insert_tail},
-    'DFS' : {'remove' : remove_prof, 'insert' : insert_prof}
+    'DFS' : {'remove' : remove_prof, 'insert' : insert_prof},
+    'A*' : {'remove' : remove_astar, 'insert' : insert_astar, 'heuristic' : heuristic_astar_factory}
     }
 
 # Solves a level
@@ -336,8 +340,14 @@ def solve(filename : str, search : str, verbose : bool, arrow : bool) -> None:
     # Retrieve the search algorithms
     remove, insert = algorithms[search]['remove'], algorithms[search]['insert']
 
-    # BFS Search (Parcours en largeur)
-    s_end, save = search_with_parent(s0, goal_factory(map_rules), succ_factory(map_rules), remove, insert, debug = verbose)
+    # Search using the parameters
+    # If it uses an heuristics, use it
+    if 'heuristic' in algorithms[search].keys():
+        heuristic = algorithms[search]['heuristic'](map_rules)
+        s_end, save = search_with_parent(s0, goal_factory(map_rules), succ_factory(map_rules), remove, insert, debug = verbose, heuristic = heuristic)
+    else:
+    # Else ignore it
+        s_end, save = search_with_parent(s0, goal_factory(map_rules), succ_factory(map_rules), remove, insert, debug = verbose)
     
     # If solution found
     if s_end :
