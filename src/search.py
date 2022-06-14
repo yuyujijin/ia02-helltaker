@@ -57,9 +57,9 @@ def heuristic_manhattan_advanced_factory(map_rules: Dict[str, set]) -> Callable[
         h2 = abs(x - x_end) + abs(y - y_end)
         return h2
     return heuristic_astar
+
 # Euclidean
 def heuristic_euclidean_factory(map_rules: Dict[str, set]) -> Callable[[State, int], int]:
-    # Manhattan
     def heuristic_astar(elt: State, h: int) -> int:
         (x, y) = elt.me
         (x_end, y_end) = list(map_rules['goals'])[0]

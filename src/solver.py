@@ -346,7 +346,8 @@ def letter2arrow(letter: str) -> str:
 
 from search import search_with_parent
 # A* Search
-from search import remove_astar, insert_astar, heuristic_manhattan_factory, heuristic_manhattan_advanced_factory, heuristic_euclidean_factory
+from search import remove_astar, insert_astar, heuristic_manhattan_factory, heuristic_manhattan_advanced_factory
+from search import heuristic_euclidean_factory
 # DFS Search (Parcours en Profondeur)
 from search import remove_prof, insert_prof
 # BFS Search (Parcours en Largeur)
@@ -377,7 +378,7 @@ def solve(filename: str, algorithm: str, heuristic : str, verbose: bool, arrow: 
     s0 = create_starting_state(
         grid['grid'], grid['max_steps'], grid['n'], grid['m'])
 
-    # Get the search algorithm
+    # If search algo is unknown
     if algorithm not in algorithms.keys():
         raise SystemExit("Error : Search algorithm %s unknown" % (algorithm))
 
@@ -387,6 +388,10 @@ def solve(filename: str, algorithm: str, heuristic : str, verbose: bool, arrow: 
     # Search using the parameters
     # If it uses an heuristics, use it
     if 'heuristic' in algorithms[algorithm].keys():
+        # If heuristic is unknown
+        if heuristic not in algorithms[algorithm]['heuristic'].keys():
+            raise SystemExit("Error : Heuristic %s unknown" % (heuristic))
+        # Retrieve the heuristic
         heuristic = algorithms[algorithm]['heuristic'][heuristic](map_rules)
         s_end, save = search_with_parent(s0, goal_factory(map_rules), succ_factory(
             map_rules), remove, insert, debug=verbose, heuristic=heuristic)
