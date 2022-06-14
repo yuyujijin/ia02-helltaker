@@ -107,6 +107,7 @@ def search_with_parent(s0: State,
                 if goals(s2):
                     return s2, save
                 # Else insert it in the list and repeat
+                # Seems like using 0 works better...
                 h2 = heuristic(s2, 0)
                 l = insert((h2, g + 1, s2), l)
     # Nothing found
