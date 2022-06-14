@@ -88,6 +88,8 @@ fluent(F, 0) :- init(F).
 %%% générateur d'actions..
 { do(Act, T): action(Act) } = 1 :- step(T).
 
+% Trouver la direction
+
 
 %%% les actions
 %%  action left
