@@ -1,71 +1,40 @@
-# helltaker_ia02
+# Projet Helltaker
 
-## Présentation
+- [0. Rapport](#0-rapport)
+- [1. Python](#1-python)
+    - [1.1 Execution](#11-execution)
+    - [1.2 Sortie](#12-sortie)
 
-Le projet **helltaker_ia02** contient différents utilitaires pour gérer les grilles *Helltaker*, ainsi que des exemples. Il sera mis à jour au fur et à mesure. Si vous aves des propositions de cartes, n'hésitez pas à nous les soumettre <mailto:sylvain.lagrue@hds.utc.fr>.
+## 0. Rapport
 
-## Structure des niveaux
+Le rapport est disponible dans le fichier `rapport.pdf`. Il décrit le projet dans sa globalité.
 
-Un simple `.txt` avec un titre en première ligne, un nombre maximum de coups en deuxième ligne, la description du niveau ensuite. Les lignes ne sont pas forcément finies.
+## 1. Python
+### 1.1 Execution
 
-- `H`: hero
-- `D`: demoness
-- `#`: wall
-- ` ` : empty
-- `B`: block
-- `K`: key
-- `L`: lock
-- `M`: mob (skeleton)
-- `S`: spikes
-- `T`: trap (safe)
-- `U`: trap (unsafe)
-- `O`: block on spike
-- `P`: block on trap (safe)
-- `Q`: block on trap (unsafe)
+Le programme s'éxecute en lançant le fichier `solver.py` via `./solver.py` ou `python3 solver.py`. Il est nécessaire de préciser le fichier de niveau, via l'option `--filename`. Trois autres options optionnelles sont disponibles ; `--search`, `--verbose` et `--arrow`. 
 
-### Exemple
+Les options disponibles pour `--search` sont :
+- `BFS` (Parcours en largeur) **[Défaut]**
+- `DFS` (Parcours en profondeur)
+- `A*` (Parcours A*). 
+Des heuristiques sont disponibles pour `A*` via l'option `--heuristic` :
+    - `manhattan` (Distance de Manhattan)
+    - `manhattan_advanced` (Une version un peu modifié de la distance de Manhattan)
+    - `euclidean` (Distance euclidienne) 
 
-```
-Level 1
-23
-     ###
-  ### H#
- #  M  #
- # M M#
-#  ####
-# B  B #
-# B B  D#
-#########
-```
+    Des fonctions `g` sont aussi disponibles pour le cacul des heuristiques via l'option `--g` :
+    - `zero` (g = g + 0)
+    - `incr` (g = g + 1)
 
+`--arrow` permet de rendre la sortie en "format fleché".
 
-## Les utilitaires
+Taper `--help` ou `-h` pour plus d'aide.
 
-Le package python3 `helltaker_utils` permet de lire les fichiers et de vérifier les plans. 
+### 1.2 Sortie
 
-### `grid_from_file(filename: str, voc: dict = {})`
+Le programme rend sur la sortie standard une suite d'instruction pour résoudre le niveau donné en argument
 
-Cette fonction lit un fichier et le convertit en une grille de Helltaker
+### 1.3 Utilitaires
 
-Arguments:
-
-- filename: fichier contenant la description de la grille
-- voc: argument facultatif permettant de convertir chaque case de la grille en votre propre vocabulaire
-
-Retour:
-
-- un dictionnaire contenant:
-   - la grille de jeu sous une forme d'une liste de liste de (chaînes de) caractères
-   - le nombre de ligne `m`
-   - le nombre de colonnes `n`
-   - le titre de la grille
-   - le nombre maximal de coups `max_steps`
-
-### `check_plan(plan: str)`
-
-Cette fonction vérifie que votre plan est valide.
-
-- Argument: un plan sous forme de chaîne de caractères
-- Retour  : `True` si le plan est valide, `False` sinon
-
-
+Un script `launchTest.sh` est disponible et executable via `./launchTest.sh` ou `bash launchTest.sh`. Il permet de lancer tous les fichiers récursivement dans `levels/` et indique le temps d'éxecution pour chacun et la solution (si elle existe). Le script execute les fichiers par défaut avec `A*`, **la distance d'euclide** et **g = g + 1**, mais il est possible de donner en argument une chaine de caractère indiquant la commande à executer *(ex : `bash launchTest.sh './solver.py --algorithm BFS'`)*.
