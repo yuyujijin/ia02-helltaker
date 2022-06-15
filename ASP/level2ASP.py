@@ -81,7 +81,7 @@ def level2ASP(file: str):
         for i in range(var["m"]):
             for j in range(var["n"]):
                 if k == tab[i][j] == 'T':
-                    tmp = "init(trap(pos(%s,%s),on)).\n" %(j,i)
+                    tmp = "trap(pos(%s,%s),on,0).\n" %(j,i)
                     s += tmp
 
 
@@ -89,7 +89,7 @@ def level2ASP(file: str):
         for i in range(var["m"]):
             for j in range(var["n"]):
                 if k == tab[i][j] == 'U':
-                    tmp = "init(trap(pos(%s,%s),off)).\n" %(j,i)
+                    tmp = "trap(pos(%s,%s),off,0).\n" %(j,i)
                     s += tmp
 
 
