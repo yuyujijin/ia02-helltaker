@@ -17,7 +17,8 @@ step(0..h-1).
 action( 
     move;
     push;
-    monster
+    monster;
+    nop
     ).
 
 direction(
@@ -71,7 +72,20 @@ init(block(6,4)).
 init(mob(2,4)).
 init(mob(3,3)).
 init(mob(3,5)).
+spike(-1,-1).
 
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%% BUTS %%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+
+goal(at(5, 4)).
+
+achieved(T) :- fluent(F, T), goal(F).
+
+:- not achieved(_). % on doit finir
+:- achieved(T), T > h. % on doit finir avant l'horizon
+:- achieved(T), do(Act, _, T), Act != nop. % la seule action possible une fois qu'on a fini : nop
+:- do(nop, _, T), not achieved(T). % mais on ne peut faire nop qu'une fois qu'on a fini
 
 
 fluent(F, 0) :- init(F).
@@ -84,25 +98,21 @@ fluent(F, 0) :- init(F).
 
 % Trouver la direction
 %% Calculer l'endroit où sera situé un objet relativement à une position en fonction d'une direction donnée en param
-positionRelative(up,pos(X,Y1),pos(X,Y2)) :-
-    case(X,Y1),
-    case(X,Y2),
-    Y2 is Y1 + 1.
+positionRelative(up,pos(X,Y),pos(X,Y+1)) :-
+    case(X,Y),
+    case(X,Y+1).
 
-positionRelative(down,pos(X,Y1),pos(X,Y2)) :-
-    case(X,Y1),
-    case(X,Y2),
-    Y2 is Y1 - 1.
+positionRelative(down,pos(X,Y),pos(X,Y-1)) :-
+    case(X,Y),
+    case(X,Y-1).
 
-positionRelative(right,pos(X1,Y),pos(X2,Y)) :-
-    case(X1,Y),
-    case(X2,Y),
-    X2 is X1 + 1.
+positionRelative(right,pos(X,Y),pos(X+1,Y)) :-
+    case(X,Y),
+    case(X+1,Y).
 
-positionRelative(left,pos(X1,Y),pos(X2,Y)) :-
-    case(X1,Y),
-    case(X2,Y),
-    X2 is X1 - 1.
+positionRelative(left,pos(X,Y),pos(X-1,Y)) :-
+    case(X,Y),
+    case(X-1,Y).
 
 %%% les actions %%%
 
@@ -153,8 +163,8 @@ fluent(hasKey(1), T+1) :-
 %% S'il se déplace sur un spike, aïe 
 fluent(at(X2,Y2), T+2) :-
     do(move, D, T),
-    
     positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
+    spike(X2,Y2),
     fluent(at(X1, Y1), T).
 
 %% S'il se déplace sur une clé la supprimer
@@ -170,25 +180,21 @@ removed(at(X, Y), T) :-
  
 % Pushs relatifs
 %% Calculer l'endroit où sera poussé un objet relativement à une position en fonction d'une direction donnée en param
-pushRelative(up,pos(X,Y1),pos(X,Y2)) :-
-    case(X,Y1),
-    case(X,Y2),
-    Y2 is Y1 + 2.
+pushRelative(up,pos(X,Y),pos(X,Y+2)) :-
+    case(X,Y),
+    case(X,Y+2).
 
-pushRelative(down,pos(X,Y1),pos(X,Y2)) :-
-    case(X,Y1),
-    case(X,Y2),
-    Y2 is Y1 - 2.
+pushRelative(down,pos(X,Y),pos(X,Y-2)) :-
+    case(X,Y),
+    case(X,Y-2).
 
-pushRelative(right,pos(X1,Y),pos(X2,Y)) :-
-    case(X1,Y),
-    case(X2,Y),
-    X2 is X1 + 2.
+pushRelative(right,pos(X,Y),pos(X+2,Y)) :-
+    case(X,Y),
+    case(X+2,Y).
 
-pushRelative(left,pos(X1,Y),pos(X2,Y)) :-
-    case(X1,Y),
-    case(X2,Y),
-    X2 is X1 - 2.
+pushRelative(left,pos(X,Y),pos(X-2,Y)) :-
+    case(X,Y),
+    case(X-2,Y).
 
 %% ACTION : POUSSER BLOCS
 % a) préconditions
@@ -273,19 +279,19 @@ removed(block(X2, Y2), T) :-
 :-  do(monster, D, T),
     pushRelative(D, pos(X1, Y1), pos(X2, Y2)),
     fluent(at(X1, Y1), T), 
-    not block(X2, Y2).
+    not fluent(block(X2, Y2), T).
 
 % Si pic derriere on peut pousser
 :-  do(monster, D, T),
     pushRelative(D, pos(X1, Y1), pos(X2, Y2)),
     fluent(at(X1, Y1), T), 
-    not spikes(X2, Y2).
+    not spike(X2, Y2).
 
 % Si key derriere on peut pousser
 :-  do(monster, D, T),
     pushRelative(D, pos(X1, Y1), pos(X2, Y2)),
     fluent(at(X1, Y1), T), 
-    not key(X2, Y2).
+    not fluent(key(X2, Y2), T).
 
 % Si lock derriere = ??? MAIS c'est pas possible de le faire dans le jeu donc OSEF
 
@@ -307,13 +313,13 @@ fluent(mob(X2, Y2), T + 1) :-
 removed(mob(X2, Y2), T) :- 
     do(monster, D, T),
     pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
-    block(pos(X2,Y2)),
+    fluent(block(X2,Y2), T),
     fluent(at(X1, Y1), T).
 %%% Un pic 
 removed(mob(X2, Y2), T) :- 
     do(monster, D, T),
     pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
-    spike(pos(X2,Y2)),
+    spike(X2,Y2),
     fluent(at(X1, Y1), T).
 %%% Un mur : COMMENT FAIRE ?
 
@@ -355,7 +361,7 @@ fluent(F, T + 1) :-
 fluent(F, T + 1) :-
     fluent(F, T),
     achieved(T),
-    T + 1 <= maxstep.
+    T + 1 <= h.
 
 
 #show do/3.
