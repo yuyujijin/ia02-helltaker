@@ -21,7 +21,9 @@ for f in $(find $FILES -type f | sort)
 do
     echo "# ${bold}Launching test on '$f'${normal}"
     res1=$(date +%s.%N)
+    set -f
     echo $($CMD --filename $f)
+    set +f
     res2=$(date +%s.%N)
     dt=$(echo "$res2 - $res1" | bc)
     echo -e "${green}Program executed in $dt seconds.${nc}\n"
