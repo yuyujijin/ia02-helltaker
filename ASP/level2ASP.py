@@ -7,79 +7,85 @@ def level2ASP(file: str):
     var = grid_from_file(file)
     print(var)
 
-    f = open("test.txt", "w")
+    s = ""
 
     tab = var["grid"]
 
     types = [' ', '#', 'H', 'S', 'D', 'B', 'K', 'L', 'M', 'T', 'U']
 
+    # Mettre des defined dans le fichier pour gérer les predicats non-définis/absents
+    s += "#defined wall/2.\n#defined case/2.\n#defined spike/2.\n#defined wall/2.\n\n\n"
+    s += "init(hasKey(0)).\n"
+
     for k in types:
         for i in range(var["m"]):
             for j in range(var["n"]):
-                if k == tab[i][j] == ' ':
-                    tmp = "case(%s,%s).\n" % (i, j)
-                    f.write(tmp)
+                if k==' ' and tab[i][j] != '#':
+                    tmp = "case(%s,%s).\n" % (j, i)
+                    s += tmp
+                if k == tab[i][j] == '#':
+                    tmp = "wall(%s,%s).\n" % (j, i)
+                    s += tmp                    
                 if k == tab[i][j] == 'S':
-                    tmp = "spike(%s,%s).\n" % (i, j)
-                    f.write(tmp)
+                    tmp = "spike(%s,%s).\n" % (j, i)
+                    s += tmp
                 if k == tab[i][j] == 'D':
-                    tmp = "goal(player(%s,%s)).\n" % (i, j)
-                    f.write(tmp)
+                    tmp = "goal(%s,%s).\n" % (j, i)
+                    s += tmp
+
+
     for k in types:
         for i in range(var["m"]):
             for j in range(var["n"]):
                 if k == tab[i][j] == 'H':
-                    tmp = "init(player(%s,%s)).\n" %(i,j)
-                    f.write(tmp)
+                    tmp = "init(at(%s,%s)).\n" %(j,i)
+                    s += tmp
 
     for k in types:
         for i in range(var["m"]):
             for j in range(var["n"]):
                 if k == tab[i][j] == 'B':
-                    tmp = "init(block(%s,%s)).\n" %(i,j)
-                    f.write(tmp)
+                    tmp = "init(block(%s,%s)).\n" %(j,i)
+                    s += tmp
 
     for k in types:
         for i in range(var["m"]):
             for j in range(var["n"]):
                 if k == tab[i][j] == 'K':
-                    tmp = "init(key(%s,%s)).\n" %(i,j)
-                    f.write(tmp)   
+                    tmp = "init(key(%s,%s)).\n" %(j,i)
+                    s += tmp   
 
 
     for k in types:
         for i in range(var["m"]):
             for j in range(var["n"]):
                 if k == tab[i][j] == 'L':
-                    tmp = "init(lock(%s,%s)).\n" %(i,j)
-                    f.write(tmp)
+                    tmp = "init(lock(%s,%s)).\n" %(j,i)
+                    s += tmp
 
 
     for k in types:
         for i in range(var["m"]):
             for j in range(var["n"]):
                 if k == tab[i][j] == 'M':
-                    tmp = "init(mob(%s,%s)).\n" %(i,j)
-                    f.write(tmp)
+                    tmp = "init(mob(%s,%s)).\n" %(j,i)
+                    s += tmp
 
 
     for k in types:
         for i in range(var["m"]):
             for j in range(var["n"]):
                 if k == tab[i][j] == 'T':
-                    tmp = "init(safe(%s,%s)).\n" %(i,j)
-                    f.write(tmp)
+                    tmp = "init(safe(%s,%s)).\n" %(j,i)
+                    s += tmp
 
 
     for k in types:
         for i in range(var["m"]):
             for j in range(var["n"]):
                 if k == tab[i][j] == 'U':
-                    tmp = "init(unsafe(%s,%s)).\n" %(i,j)
-                    f.write(tmp)
+                    tmp = "init(unsafe(%s,%s)).\n" %(j,i)
+                    s += tmp
 
 
-    f.close()
-
-
-level2ASP("levels/level1.txt")
+    return s
