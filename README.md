@@ -1,8 +1,13 @@
 # Projet Helltaker
 
+- [0. Rapport](#0-rapport)
 - [1. Python](#1-python)
     - [1.1 Execution](#11-execution)
     - [1.2 Sortie](#12-sortie)
+
+## 0. Rapport
+
+Le rapport est disponible dans le fichier `rapport.pdf`. Il décrit le projet dans sa globalité.
 
 ## 1. Python
 ### 1.1 Execution
