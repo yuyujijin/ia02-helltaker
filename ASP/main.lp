@@ -17,6 +17,7 @@ step(0..h-1).
 action( 
     move;
     push;
+    aie;
     mob;
     nop
     ).
@@ -118,6 +119,20 @@ positionRelative(left,pos(X,Y),pos(X-1,Y)) :-
     fluent(at(X1, Y1), T), 
     fluent(mob(X2, Y2), T).
 
+%% Les pics ça pique
+:- do(move,D,T),
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    spike(X2,Y2),
+    fluent(at(X1,Y1),T),
+    not do(aie, D, T+1).
+
+%% Les safe ça pique
+:- do(move,D,T),
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(safe(X2,Y2), T),
+    fluent(at(X1,Y1),T),
+    not do(aie, _, T+1).
+
 % b) effets
 %% Update la position du perso (peu importe sur quoi il tombe)
 fluent(at(X2, Y2), T + 1) :-
@@ -129,7 +144,7 @@ fluent(at(X2, Y2), T + 1) :-
     not fluent(lock(X2,Y2),T).
 
 %% S'il se déplace sur un spike, aïe 
-fluent(at(X2,Y2), T+2) :-
+fluent(at(X2,Y2), T + 1) :-
     do(move, D, T),
     positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
     spike(X2,Y2),
@@ -138,8 +153,8 @@ fluent(at(X2,Y2), T+2) :-
     not fluent(mob(X2,Y2),T),
     not fluent(lock(X2,Y2),T).
 
-%% S'il se déplace sur un safe, aïe 
-fluent(at(X2,Y2), T+2) :-
+%% S'il se déplace sur un unsafe, aïe 
+fluent(at(X2,Y2), T + 1) :-
     do(move, D, T),
     positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
     fluent(safe(X2,Y2), T),
@@ -277,6 +292,20 @@ pushRelative(left,pos(X,Y),pos(X-2,Y)) :-
     fluent(at(X1, Y1), T),
     goal(X2, Y2).
 
+%% Les pics ça pique
+:- do(push,D,T),
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    spike(X2,Y2),
+    fluent(at(X1,Y1),T),
+    not do(aie, D, T+1).
+
+%% Les safe ça pique
+:- do(push,D,T),
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(safe(X2,Y2), T),
+    fluent(at(X1,Y1),T),
+    not do(aie, _, T+1).
+
 % b) effets
 % Update la position du bloc
 fluent(block(X2, Y2), T + 1) :- 
@@ -337,6 +366,20 @@ removed(block(X2, Y2), T) :-
     fluent(at(X1, Y1), T),
     goal(X2, Y2).
 
+%% Les pics ça pique
+:- do(mob,D,T),
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    spike(X2,Y2),
+    fluent(at(X1,Y1),T),
+    not do(aie, D, T+1).
+
+%% Les safe ça pique
+:- do(mob,D,T),
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(safe(X2,Y2), T),
+    fluent(at(X1,Y1),T),
+    not do(aie, _, T+1).
+
 % b) effets
 % Update la position du mob
 fluent(mob(X2, Y2), T + 1) :- 
@@ -364,25 +407,52 @@ removed(mob(X2, Y2), T) :-
     wall(X2,Y2),
     fluent(at(X1, Y1), T).
 
-% Si block poussé, son ancienne position est notée removed
+% Si mob poussé, son ancienne position est notée removed
 removed(mob(X2, Y2), T) :- 
     do(mob, D, T),
     positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T).
 
 
+:-  do(aie, _, T),
+    fluent(at(X, Y), T),
+    not spike(X, Y),
+    not fluent(trap(pos(X,Y),off), T).
+
+:- do(aie, _,T),
+    do(aie, _,T-1).
+
+% effets
+fluent(at(X, Y), T) :-
+    do(aie, _, T + 1),
+    spike(X, Y),
+    fluent(at(X, Y), T).
+
+fluent(at(X, Y), T) :-
+    do(aie,_, T + 1),
+    fluent(unsafe(X, Y),T + 1),
+    fluent(at(X, Y), T).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%% Intervertir les safe et unsafe %%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Safe
-fluent(safe(U),T+1) :-
-    do(_,_,T), %pour dire "si une action (peu importe laquelle) est faite au tour T" ==> jsp si utile
-    fluent(unsafe(U),T).
+fluent(safe(X,Y),T+1) :-
+    do(_,_,T), 
+    fluent(unsafe(X,Y),T).
+
+removed(unsafe(X,Y),T) :-
+    do(_,_,T), 
+    fluent(unsafe(X,Y),T).
 
 %% Unsafe
-fluent(unsafe(S),T+1) :-
-    do(_,_,T), %pour dire "si une action (peu importe laquelle) est faite au tour T" ==> jsp si utile
-    fluent(safe(S),T).
+fluent(unsafe(X,Y),T+1) :-
+    do(_,_,T), 
+    fluent(unsafe(X,Y),T).
+
+removed(safe(X,Y),T) :-
+    do(_,_,T), 
+    fluent(safe(X,Y),T).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%% Frame Problem %%%%%%%
@@ -391,7 +461,8 @@ fluent(unsafe(S),T+1) :-
 fluent(F, T + 1) :- 
     fluent(F, T), 
     T + 1 <= h,
-    not removed(F, T).
+    not removed(F, T),
+    not fluent().
 
 fluent(F, T + 1) :-
     fluent(F, T),
