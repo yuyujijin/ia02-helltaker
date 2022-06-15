@@ -54,7 +54,7 @@ achieved(T) :-
 fluent(F, 0) :- init(F).
 
 %%% tous les buts doivent être atteints au pas hitmax
-:- goal(F), not fluent(F, h).
+% :- goal(X,Y), not fluent(at(X,Y), h).
 
 %%% générateur d'actions..
 { do(Act, To, T): action(Act), direction(To) } = 1 :- step(T).
@@ -117,61 +117,90 @@ positionRelative(left,pos(X,Y),pos(X-1,Y)) :-
     fluent(at(X1, Y1), T), 
     fluent(mob(X2, Y2), T).
 
-%% Pas de serrure où on veut aller, si on a pas de clé
-:-  do(move, D, T),
-    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
-    fluent(at(X1, Y1), T), 
-    fluent(hasKey(0),T),
-    fluent(lock(X2,Y2),T). 
-
 % b) effets
 %% Update la position du perso (peu importe sur quoi il tombe)
 fluent(at(X2, Y2), T + 1) :-
     do(move, D, T),
     positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
-    fluent(at(X1, Y1), T).
-
-%% S'il se déplace sur une serrure avec une clé
-fluent(at(X2, Y2), T + 1) :-
-    do(move, D, T),
-    positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
-    fluent(hasKey(1), T),    
-    fluent(lock(X2,Y2),T),
-    fluent(at(X1, Y1), T).
-
-fluent(hasKey(0), T+1) :-
-    do(move, D, T),
-    positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
-    fluent(hasKey(1), T),    
-    fluent(lock(X2,Y2),T),
     fluent(at(X1, Y1), T),
-    fluent(at(X1, Y1), T).
-
-%% S'il se déplace sur une clé, la collecter
-fluent(hasKey(1), T+1) :-
-    do(move, D, T),
-    positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
-    fluent(key(X2,Y2), T),
-    fluent(at(X1, Y1), T).
+    not fluent(block(X2,Y2),T),
+    not fluent(mob(X2,Y2),T),
+    not fluent(lock(X2,Y2),T).
 
 %% S'il se déplace sur un spike, aïe 
 fluent(at(X2,Y2), T+2) :-
     do(move, D, T),
     positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
     spike(X2,Y2),
-    fluent(at(X1, Y1), T).
+    fluent(at(X1, Y1), T),
+    not fluent(block(X2,Y2),T),
+    not fluent(mob(X2,Y2),T),
+    not fluent(lock(X2,Y2),T).
 
-%% S'il se déplace sur une clé la supprimer
-removed(key(X,Y), T) :-
-    fluent(hasKey(0), T),
-    fluent(hasKey(1), T+1),
-    fluent(at(X,Y),T).
+%% S'il se déplace sur un spike, aïe 
+fluent(at(X2,Y2), T+2) :-
+    do(move, D, T),
+    positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
+    fluent(safe(X2,Y2)),
+    fluent(at(X1, Y1), T),
+    not fluent(block(X2,Y2),T),
+    not fluent(mob(X2,Y2),T),
+    not fluent(lock(X2,Y2),T).
+
+% immobile devant la serrure si pas clé
+fluent(at(X1, Y1), T + 1) :-
+    do(move, D, T),
+    positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
+    fluent(at(X1, Y1), T),
+    case(X2, Y2),
+    fluent(lock(X2, Y2), T),
+    fluent(hasKey(0), T).
+
+% S'il se déplace sur une serrure, si il a clé
+fluent(at(X2, Y2), T + 1) :-
+    do(move, D, T),
+    positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
+    fluent(at(X1, Y1), T),
+    case(X2, Y2),
+    fluent(lock(X2, Y2), T),
+    fluent(hasKey(1), T).
 
 %% Donne l'attribut "removed" quand le perso a fait une action
 removed(at(X, Y), T) :-
     do(move, _, T),
     fluent(at(X, Y), T).
  
+%% Removed le lock
+removed(lock(X2, Y2), T + 1) :-
+    do(move, D, T),
+    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+    fluent(at(X1, Y1), T),
+    fluent(hasKey(1), T).
+
+% CLES
+
+%% S'il est sur une clé, la collecter
+
+%fluent(hasKey(1), T) :-
+%    do(move, D, T),
+%    positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
+%    fluent(at(X1, Y1), T),
+%    fluent(key(X2, Y2), T).
+fluent(hasKey(1), T) :-
+    fluent(key(X, Y), T),
+    fluent(at(X, Y), T).
+
+%% S'il est sur une clé la supprimer
+removed(key(X, Y), T) :-
+    fluent(at(X, Y), T).
+
+% s'il est sur un lock enlever serrure
+removed(hasKey(0), T) :-
+    fluent(hasKey(1), T),
+    fluent(at(X, Y), T),
+    fluent(lock(X, Y), T).
+
+
 % Pushs relatifs
 %% Calculer l'endroit où sera poussé un objet relativement à une position en fonction d'une direction donnée en param
 pushRelative(up,pos(X,Y),pos(X,Y-2)) :-
@@ -229,7 +258,7 @@ pushRelative(left,pos(X,Y),pos(X-2,Y)) :-
     fluent(at(X1, Y1), T),
     fluent(lock(X2, Y2), T).
 
-% check s'il n'y a pas de monstre où on veut pousser
+% check s'il n'y a pas de mob où on veut pousser
 :-  do(push, D, T), 
     pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T),
@@ -254,10 +283,10 @@ removed(block(X2, Y2), T) :-
     positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T).
 
-%% ACTION : POUSSER MONSTRE
+%% ACTION : POUSSER mob
 % a) préconditions
 
-% Verifier qu'il y a bien un monstre à pousser
+% Verifier qu'il y a bien un mob à pousser
 :-  do(mob, D, T), 
     positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T), 
@@ -302,13 +331,13 @@ removed(block(X2, Y2), T) :-
     fluent(goal(X2, Y2), T).
 
 % b) effets
-% Update la position du monstre
+% Update la position du mob
 fluent(mob(X2, Y2), T + 1) :- 
     do(mob, D, T),
     pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T).
 
-% Le monstre est marqué comme removed, s'il rentre en contact avec :
+% Le mob est marqué comme removed, s'il rentre en contact avec :
 %%% Un bloc 
 removed(mob(X2, Y2), T) :- 
     do(mob, D, T),
