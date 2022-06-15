@@ -11,7 +11,7 @@ def parse(levelname):
         s = level2ASP(levelname)
         print('s :',s)
         f.write(s)
-        with open('main.lp', "r") as g:
+        with open('newASP.lp', "r") as g:
             for line in g.readlines():
                 f.write(line)
 
