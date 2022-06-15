@@ -28,6 +28,7 @@ direction(
     left
 ).
 
+
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%% BUTS %%%%%%%
 %%%%%%%%%%%%%%%%%%%%
@@ -137,11 +138,11 @@ fluent(at(X2,Y2), T+2) :-
     not fluent(mob(X2,Y2),T),
     not fluent(lock(X2,Y2),T).
 
-%% S'il se déplace sur un spike, aïe 
+%% S'il se déplace sur un safe, aïe 
 fluent(at(X2,Y2), T+2) :-
     do(move, D, T),
     positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
-    fluent(safe(X2,Y2)),
+    fluent(safe(X2,Y2), T),
     fluent(at(X1, Y1), T),
     not fluent(block(X2,Y2),T),
     not fluent(mob(X2,Y2),T),
