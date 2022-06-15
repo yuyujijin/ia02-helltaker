@@ -121,19 +121,47 @@ positionRelative(left,pos(X1,Y),pos(X2,Y)) :-
     fluent(at(X1, Y1), T), 
     fluent(mob(X2, Y2), T).
 
-%% Pas de serrure où on veut aller
+%% Pas de serrure où on veut aller, si on a pas de clé
 :-  do(move, D, T),
     positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T), 
-    not case(X2, Y2),
-    not fluent(lock(X2,Y2),T). 
+    fluent(hasKey(0),T),
+    fluent(lock(X2,Y2),T). 
 
 % b) effets
-%% Update la position du perso
+%% Update la position du perso (peu importe sur quoi il tombe)
 fluent(at(X2, Y2), T + 1) :-
     do(move, D, T),
-    positionRelative(D, pos(X1,Y1),pos(X2,Y2)),    
+    positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
     fluent(at(X1, Y1), T).
+
+%% S'il se déplace sur une serrure avec une clé
+fluent(at(X2, Y2), T + 1) :-
+    do(move, D, T),
+    positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
+    fluent(hasKey(1), T),    
+    fluent(lock(X2,Y2),T),
+    fluent(at(X1, Y1), T).
+
+%% S'il se déplace sur une clé, la collecter
+fluent(hasKey(1), T+1) :-
+    do(move, D, T),
+    positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
+    fluent(key(X2,Y2), T),
+    fluent(at(X1, Y1), T).
+
+%% S'il se déplace sur un spike, aïe 
+fluent(at(X2,Y2), T+2) :-
+    do(move, D, T),
+    
+    positionRelative(D, pos(X1,Y1),pos(X2,Y2)),
+    fluent(at(X1, Y1), T).
+
+%% S'il se déplace sur une clé la supprimer
+removed(key(X,Y), T) :-
+    fluent(hasKey(0), T),
+    fluent(hasKey(1), T+1),
+    fluent(at(X,Y),T).
 
 %% Donne l'attribut "removed" quand le perso a fait une action
 removed(at(X, Y), T) :-
@@ -295,6 +323,12 @@ removed(mob(X2, Y2), T) :-
     do(monster, D, T),
     positionRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% Clés et déverouillage %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%% Intervertir les safe et unsafe %%%%%
