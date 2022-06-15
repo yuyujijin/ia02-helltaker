@@ -11,7 +11,7 @@ def level2ASP(file: str):
 
     tab = var["grid"]
 
-    types = [' ', '#', 'H', 'S', 'D', 'B', 'K', 'L', 'M', 'T', 'U']
+    types = [' ', '#', 'H', 'S', 'O', 'D', 'B', 'K', 'L', 'M', 'T', 'U']
 
     # Mettre des defined dans le fichier pour gérer les predicats non-définis/absents
     s += "#defined wall/2.\n#defined case/2.\n#defined spike/2.\n#defined wall/2.\n\n\n"
@@ -27,6 +27,11 @@ def level2ASP(file: str):
                     tmp = "wall(%s,%s).\n" % (j, i)
                     s += tmp                    
                 if k == tab[i][j] == 'S':
+                    tmp = "spike(%s,%s).\n" % (j, i)
+                    s += tmp
+                if k == tab[i][j] == 'O':
+                    tmp = "init(block(%s,%s)).\n" % (j, i)
+                    s += tmp
                     tmp = "spike(%s,%s).\n" % (j, i)
                     s += tmp
                 if k == tab[i][j] == 'D':

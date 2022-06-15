@@ -1,3 +1,91 @@
+#defined wall/2.
+#defined case/2.
+#defined spike/2.
+#defined wall/2.
+
+
+init(hasKey(0)).
+case(0,0).
+case(1,0).
+case(2,0).
+case(3,0).
+case(4,0).
+case(8,0).
+case(0,1).
+case(1,1).
+case(5,1).
+case(6,1).
+case(8,1).
+case(0,2).
+case(2,2).
+case(3,2).
+case(4,2).
+case(5,2).
+case(6,2).
+case(8,2).
+case(0,3).
+case(2,3).
+case(3,3).
+case(4,3).
+case(5,3).
+case(7,3).
+case(8,3).
+case(1,4).
+case(2,4).
+case(7,4).
+case(8,4).
+case(1,5).
+case(2,5).
+case(3,5).
+case(4,5).
+case(5,5).
+case(6,5).
+case(8,5).
+case(1,6).
+case(2,6).
+case(3,6).
+case(4,6).
+case(5,6).
+case(6,6).
+case(7,6).
+wall(5,0).
+wall(6,0).
+wall(7,0).
+wall(2,1).
+wall(3,1).
+wall(4,1).
+wall(7,1).
+wall(1,2).
+wall(7,2).
+wall(1,3).
+wall(6,3).
+wall(0,4).
+wall(3,4).
+wall(4,4).
+wall(5,4).
+wall(6,4).
+wall(0,5).
+wall(7,5).
+wall(0,6).
+wall(8,6).
+wall(0,7).
+wall(1,7).
+wall(2,7).
+wall(3,7).
+wall(4,7).
+wall(5,7).
+wall(6,7).
+wall(7,7).
+wall(8,7).
+goal(7,6).
+init(at(6,1)).
+init(block(2,5)).
+init(block(5,5)).
+init(block(2,6)).
+init(block(4,6)).
+init(mob(4,2)).
+init(mob(3,3)).
+init(mob(5,3)).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%        HELLTAKER IN ASP        %%%
 %%%         version: 0.1           %%%
@@ -265,11 +353,11 @@ pushRelative(left,pos(X,Y),pos(X-2,Y)) :-
     fluent(at(X1, Y1), T),
     fluent(mob(X2, Y2), T).
 
-%%%%%%% check s'il n'y a pas de mur où on veut pousser
+% check s'il n'y a pas de mur où on veut pousser
 :-  do(push, D, T), 
     pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T),
-    wall(X2,Y2).    
+    wall(X2,Y2).
 
 % check s'il n'y a pas le goal où on peut pousser
 :-  do(push, D, T), 
@@ -335,7 +423,7 @@ removed(block(X2, Y2), T) :-
 :-  do(mob, D, T), 
     pushRelative(D, pos(X1,Y1), pos(X2,Y2)),
     fluent(at(X1, Y1), T),
-    goal(X2, Y2).
+    fluent(goal(X2, Y2), T).
 
 % b) effets
 % Update la position du mob
