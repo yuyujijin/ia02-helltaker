@@ -346,15 +346,19 @@ algorithms = {
     'A*': {'remove': remove_astar, 'insert': insert_astar, 'heuristic': {
             'manhattan' : heuristic_manhattan_factory,
             'manhattan_advanced' : heuristic_manhattan_advanced_factory,
-            'euclidean' : heuristic_euclidean_factory
-        }, 'data_structure' : list()
+            'euclidean' : heuristic_euclidean_factory,
+        }, 'g' : {
+            'zero' : lambda x : x,
+            'incr' : lambda x : x + 1
+        },
+        'data_structure' : list()
     }
 }
 
 # Solves a level
 
 
-def solve(filename: str, algorithm: str, heuristic : str, verbose: bool, arrow: bool) -> None:
+def solve(filename: str, algorithm: str, heuristic : str, g : str, verbose: bool, arrow: bool) -> None:
     # Parse the level
     grid = helltaker_utils.grid_from_file(filename)
 
@@ -381,8 +385,19 @@ def solve(filename: str, algorithm: str, heuristic : str, verbose: bool, arrow: 
             raise SystemExit("Error : Heuristic %s unknown" % (heuristic))
         # Retrieve the heuristic
         heuristic = algorithms[algorithm]['heuristic'][heuristic](map_rules)
-        s_end, save = search_with_parent(s0, goal_factory(map_rules), succ_factory(
-            map_rules), remove, insert, debug=verbose, heuristic=heuristic, l = data_structure)
+        # If algo uses a g function
+        if 'g' in algorithms[algorithm].keys():
+            # If g is unknown
+            if g not in algorithms[algorithm]['g'].keys():
+                raise SystemExit("Error : G %s unknown" % (g))
+            # Launch the algo with params
+            g = algorithms[algorithm]['g'][g]
+            s_end, save = search_with_parent(s0, goal_factory(map_rules), succ_factory(
+            map_rules), remove, insert, debug=verbose, heuristic=heuristic, g_func = g, l = data_structure)
+        # Else ignore it
+        else :
+            s_end, save = search_with_parent(s0, goal_factory(map_rules), succ_factory(
+            map_rules), remove, insert, debug=verbose, heuristic=heuristic,l = data_structure)
     else:
         # Else ignore it
         s_end, save = search_with_parent(s0, goal_factory(
@@ -416,6 +431,8 @@ def parse_args():
         "--algorithm", help="Search algorithm to be used (default is BFS)", default="BFS")
     parser.add_argument(
         "--heuristic", help="Heuristic to be used (for informed algo.)(default is Manhattan)", default="manhattan")
+    parser.add_argument(
+        "--g", help="G function for heuristic to be used (for informed algo.)(default is zero)", default="zero")
     parser.add_argument("--verbose", help="Verbosity", action="store_true")
     parser.add_argument(
         "--arrow", help="Select if output is in arrow mode", action="store_true")
@@ -424,5 +441,5 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    solve(args.filename, algorithm=args.algorithm, heuristic=args.heuristic,
-          verbose=args.verbose, arrow=args.arrow)
+    solve(args.filename, algorithm=args.algorithm, 
+        heuristic=args.heuristic, g=args.g, verbose=args.verbose, arrow=args.arrow)

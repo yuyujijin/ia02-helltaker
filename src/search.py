@@ -76,15 +76,17 @@ def remove_astar(L: List[State]) -> Tuple[State, List[State]]:
 
 # Search with parent known (works with A* or not)
 def search_with_parent(s0: State,
-                       goals: Callable[[State], bool],
-                       succ: Callable[[State], Dict[State, Action]],
-                       remove: Callable[[List[State]], State],
-                       insert: Callable[[State, List[State]], List[State]],
-                       # Default heuristic just doesn't value anything
-                       heuristic: Callable[[
+                        goals: Callable[[State], bool],
+                        succ: Callable[[State], Dict[State, Action]],
+                        remove: Callable[[List[State]], State],
+                        insert: Callable[[State, List[State]], List[State]],
+                        # Default heuristic just doesn't value anything
+                        heuristic: Callable[[
                            Tuple[State, int]], int] = lambda s: 0,
-                       debug: bool = True,
-                       l = []):
+                        # G function for heuristic
+                        g_func : Callable[[int], int] = lambda x : 0,
+                        debug: bool = True,
+                        l = []):
     # Insertion first element
     l = insert((0, 0, s0), l)
     # Save for traceback
@@ -108,6 +110,6 @@ def search_with_parent(s0: State,
                     return s2, save
                 # Else insert it in the list and repeat
                 h2 = heuristic(s2) + g
-                l = insert((h2, g + 1, s2), l)
+                l = insert((h2, g_func(g), s2), l)
     # Nothing found
     return None, save
