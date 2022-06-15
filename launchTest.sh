@@ -8,7 +8,7 @@ nc='\033[0m'
 
 echo -n "${bold}### "
 if [ $# -eq 0 ] ; then
-    CMD="./solver.py --algorithm A* --heuristic euclidean"
+    CMD="./solver.py --algorithm A* --heuristic euclidean --g incr"
     echo -n "No command given, using "
 else
     CMD=$1
