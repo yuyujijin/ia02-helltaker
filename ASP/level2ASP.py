@@ -13,11 +13,17 @@ def level2ASP(file: str):
 
     types = [' ', '#', 'H', 'S', 'D', 'B', 'K', 'L', 'M', 'T', 'U']
 
+
+    for i in range(var["m"]):
+            for j in range(var["n"]):
+                if tab[i][j] != '#':
+                    tmp = "case(%s,%s).\n" % (i, j)
+                    f.write(tmp)
     for k in types:
         for i in range(var["m"]):
             for j in range(var["n"]):
-                if k == tab[i][j] == ' ':
-                    tmp = "case(%s,%s).\n" % (i, j)
+                if k == tab[i][j] == '#':
+                    tmp = "wall(%s,%s).\n" % (i, j)
                     f.write(tmp)
                 if k == tab[i][j] == 'S':
                     tmp = "spike(%s,%s).\n" % (i, j)
